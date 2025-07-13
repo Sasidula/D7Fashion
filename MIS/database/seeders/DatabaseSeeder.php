@@ -14,7 +14,6 @@ use App\Models\PettyCash;
 use App\Models\ProductSale;
 use App\Models\ProductSalesItem;
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
