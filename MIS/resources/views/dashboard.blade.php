@@ -1,14 +1,8 @@
-<!-- resources/views/layouts/app.blade.php -->
+<!-- resources/views/layouts/dashboard.blade.php -->
 <x-app-layout>
     <div
-        x-data="{
-        sidebarOpen: JSON.parse(localStorage.getItem('sidebarOpen')) || false,
-        toggleSidebar() {
-            this.sidebarOpen = !this.sidebarOpen;
-            localStorage.setItem('sidebarOpen', JSON.stringify(this.sidebarOpen));
-        }
-    }"
-        x-init="$watch('sidebarOpen', value => localStorage.setItem('sidebarOpen', JSON.stringify(value)))"
+        x-data="layoutHandler()"
+        x-init="init()"
         class="h-screen flex flex-col overflow-hidden bg-white"
     >
         <!-- Header -->
@@ -38,5 +32,61 @@
                 </main>
             </div>
         </div>
+
+        <!-- Popup -->
+        @include('components.popup')
+
     </div>
+    <script>
+        window.layoutHandler = () => ({
+            sidebarOpen: JSON.parse(localStorage.getItem('sidebarOpen')) || false,
+
+            popup: {
+                open: false,
+                title: '',
+                content: '',
+                requestId: 0,
+            },
+
+            toggleSidebar() {
+                this.sidebarOpen = !this.sidebarOpen;
+                localStorage.setItem('sidebarOpen', JSON.stringify(this.sidebarOpen));
+            },
+
+            init() {
+                this.$watch('sidebarOpen', value => {
+                    localStorage.setItem('sidebarOpen', JSON.stringify(value));
+                });
+
+                window.addEventListener('popup-open', (e) => {
+                    const { title, view } = e.detail;
+                    this.open(title, view);
+                });
+            },
+
+            async open(title, bladeRoute) {
+                this.popup.requestId++; // 🆕 Increment ID for new request
+                const currentId = this.popup.requestId;
+
+                this.popup.title = title;
+                this.popup.content = 'Loading...';
+
+                try {
+                    const response = await fetch(`/popup/${bladeRoute}`);
+                    const html = await response.text();
+
+                    // 🛑 If another request was made after this, cancel update
+                    if (currentId !== this.popup.requestId) return;
+
+                    this.popup.content = html;
+                    this.popup.open = true;
+                } catch (e) {
+                    if (currentId !== this.popup.requestId) return;
+
+                    this.popup.content = '<div class="text-red-500">Failed to load content.</div>';
+                    this.popup.open = true;
+                }
+            },
+        });
+    </script>
 </x-app-layout>

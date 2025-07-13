@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ExternalProduct;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class ExternalProductController extends Controller
 {

@@ -49,15 +49,15 @@
                 <p class="text-xs text-gray-500">{{ Auth::user()->email }}</p>
             </div>
             <div class="py-1">
-                <a href="{{ route('profile.edit') }}"
+                <a href="#"
+                   @click.prevent="$dispatch('popup-open', { title: 'Edit Profile', view: 'edit' })"
                    class="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100">
                     <x-lucide-edit class="w-4 h-4 mr-2" />
                     Edit Profile
                 </a>
                 <a href="#"
-                   class="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
-                   @click.prevent="$dispatch('open-user-create')"
-                >
+                   @click.prevent="$dispatch('popup-open', { title: 'Create User', view: 'register' })"
+                   class="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100">
                     <x-lucide-user-plus class="w-4 h-4 mr-2" />
                     Create User
                 </a>

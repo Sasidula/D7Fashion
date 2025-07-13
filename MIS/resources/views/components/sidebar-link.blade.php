@@ -20,6 +20,9 @@
         @case('bar-chart-3')
             <x-lucide-bar-chart-3 class="w-5 h-5 mr-3" />
             @break
+        @case('clarity-settings-line')
+            <x-clarity-settings-line class="w-5 h-5 mr-3" />
+            @break
     @endswitch
     {{ $label }}
 </a>

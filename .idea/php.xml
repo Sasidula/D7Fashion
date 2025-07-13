@@ -121,6 +121,7 @@
       <path value="$PROJECT_DIR$/MIS/vendor/symfony/polyfill-php83" />
       <path value="$PROJECT_DIR$/MIS/vendor/blade-ui-kit/blade-icons" />
       <path value="$PROJECT_DIR$/MIS/vendor/mallardduck/blade-lucide-icons" />
+      <path value="$PROJECT_DIR$/MIS/vendor/codeat3/blade-clarity-icons" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />

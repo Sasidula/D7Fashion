@@ -123,6 +123,7 @@
       <excludeFolder url="file://$MODULE_DIR$/MIS/vendor/vlucas/phpdotenv" />
       <excludeFolder url="file://$MODULE_DIR$/MIS/vendor/voku/portable-ascii" />
       <excludeFolder url="file://$MODULE_DIR$/MIS/vendor/webmozart/assert" />
+      <excludeFolder url="file://$MODULE_DIR$/MIS/vendor/codeat3/blade-clarity-icons" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

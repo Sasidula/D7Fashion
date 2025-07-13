@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\InternalProductController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 
@@ -7,6 +9,8 @@ use App\Http\Controllers\ProfileController;
 Route::get('/', function () {
     return view('login'); // Custom login page
 });
+
+Route::get('/view', [InternalProductController::class, 'index']);
 
 // Dashboard with optional dynamic page loading
 Route::get('/dashboard', function () {
@@ -27,6 +31,16 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+Route::get('/popup/{view}', function ($view) {
+    $blade = "popups.$view";
+    if (!view()->exists($blade)) abort(404);
+
+    $user = Auth::user(); // ✅ Get the logged-in user
+
+    return view($blade, compact('user')); // ✅ Pass $user to the Blade view
+})->middleware('auth'); // ✅ Protect with auth
+
 
 // Load additional auth routes (login, register, reset, etc.)
 require __DIR__.'/auth.php';
