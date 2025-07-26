@@ -1,67 +1,36 @@
+
+<x-app-layout>
+    <div
+        x-data="layoutHandler()"
+        x-init="init()"
+        class="h-screen flex flex-col overflow-hidden bg-white"
+    >
+        <!-- Header -->
+        @include('components.header')
+
+        <div class="flex-1 flex overflow-hidden">
+            <!-- Sidebar -->
+            @include('components.sidebar', ['currentPage' => 'accounts'])
+
+            <!-- Overlay (Mobile Only) -->
+            <div
+                x-show="sidebarOpen"
+                x-transition:enter="transition ease-in-out duration-300"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in-out duration-300"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 top-16 bg-black bg-opacity-40 z-20 md:hidden"
+                @click="sidebarOpen = false"
+            ></div>
+
+            <!-- Page content wrapper -->
+            <div class="flex-1 overflow-y-auto transition-all duration-300 ease-in-out">
+                <main class="p-6">
 <div
-    x-data="{
-        formData: { title: '', type: 'income', amount: '', description: '' },
-        errors: {},
-        success: false,
-        titles: [
-            'Sales Revenue', 'Supplier Payment', 'Utility Bill', 'Employee Bonus', 'Maintenance Cost'
-        ],
-        newTitle: '',
-        entries: [
-            { id: 1, title: 'Sales Revenue', type: 'income', amount: 5000.00, description: 'Monthly sales' },
-            { id: 2, title: 'Supplier Payment', type: 'outcome', amount: 2000.00, description: 'Fabric purchase' }
-        ],
-        validate() {
-            const newErrors = {};
-            if (!this.formData.title.trim()) newErrors.title = 'Title is required';
-            if (!this.formData.amount.trim()) {
-                newErrors.amount = 'Amount is required';
-            } else if (isNaN(parseFloat(this.formData.amount)) || parseFloat(this.formData.amount) <= 0) {
-                newErrors.amount = 'Please enter a valid amount';
-            }
-            this.errors = newErrors;
-            return Object.keys(newErrors).length === 0;
-        },
-        handleSubmit(event) {
-            event.preventDefault();
-            if (this.validate()) {
-                console.log('Entry added:', this.formData);
-                this.entries.push({
-                    id: this.entries.length + 1,
-                    title: this.formData.title,
-                    type: this.formData.type,
-                    amount: parseFloat(this.formData.amount),
-                    description: this.formData.description
-                });
-                this.success = true;
-                setTimeout(() => {
-                    this.success = false;
-                    this.formData = { title: '', type: 'income', amount: '', description: '' };
-                    this.errors = {};
-                }, 3000);
-            }
-        },
-        addTitle() {
-            if (this.newTitle.trim() && !this.titles.includes(this.newTitle.trim())) {
-                this.titles.push(this.newTitle.trim());
-                this.newTitle = '';
-                alert('Title added successfully!');
-            }
-        },
-        removeTitle(title) {
-            if (confirm('Are you sure you want to remove this title?')) {
-                this.titles = this.titles.filter(t => t !== title);
-                this.entries = this.entries.filter(e => e.title !== title);
-                alert('Title removed successfully!');
-            }
-        },
-        deleteEntry(id) {
-            if (confirm('Are you sure you want to delete this entry?')) {
-                this.entries = this.entries.filter(e => e.id !== id);
-                alert('Entry deleted successfully!');
-            }
-        }
-    }"
+    x-data="accountComponent()"
+    x-init="initPopup()"
     class="bg-white rounded-lg shadow-md p-6"
 >
     <h1 class="text-2xl font-bold mb-6 text-[#0f2360]">Income/Outcome</h1>
@@ -163,87 +132,180 @@
         </div>
     </div>
     <!-- </form> -->
+</div>
 
-    <!-- Add/Remove Titles -->
-    <div class="mt-8 max-w-2xl mx-auto">
-        <h2 class="text-lg font-medium mb-4 text-[#0f2360]">Manage Titles</h2>
-        <div class="flex space-x-4">
-            <input
-                type="text"
-                x-model="newTitle"
-                placeholder="New title"
-                class="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
-            />
-            <button
-                @click="addTitle"
-                class="bg-[#fd9c0a] text-white py-2 px-4 rounded-md hover:bg-[#e08c09] flex items-center"
-            >
-                <x-lucide-plus class="w-5 h-5 mr-2" />
-                Add
-            </button>
-        </div>
-        <div class="mt-4">
-            <template x-for="title in titles" :key="title">
-                <div class="flex justify-between items-center py-2">
-                    <span x-text="title"></span>
-                    <button
-                        @click="removeTitle(title)"
-                        class="text-red-600 hover:text-red-800"
-                    >
-                        <x-lucide-trash class="w-5 h-5" />
-                    </button>
-                </div>
-            </template>
-        </div>
+<div class="bg-white rounded-lg shadow-md p-6 mt-8 flex flex-col md:flex-row gap-6">
+    <!-- Add New Title -->
+    <div class="flex-1">
+        <h2 class="text-lg font-medium mb-4 text-[#0f2360]">Add New Title</h2>
+        <button
+            @click="$dispatch('popup-open', {
+                title: 'Add New Title',
+                view: 'account-add-title',
+                data: null
+            })"
+            class="w-full bg-[#fd9c0a] text-white py-2 px-4 rounded-md hover:bg-[#e08c09] focus:outline-none flex items-center justify-center"
+        >
+            <x-lucide-plus class="w-5 h-5 mr-2" />
+            Add
+        </button>
     </div>
 
-    <!-- Entries Table -->
-    <div class="mt-8 max-w-2xl mx-auto">
-        <h2 class="text-lg font-medium mb-4 text-[#0f2360]">Entries</h2>
-        <div x-show="entries.length === 0" class="text-center py-8">
-            <x-lucide-wallet class="mx-auto text-gray-300 mb-3 h-12 w-12" />
-            <p class="text-gray-500">No entries available</p>
-        </div>
-        <div x-show="entries.length > 0" class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Title
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Type
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Amount
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Description
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Action
-                    </th>
-                </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                <template x-for="entry in entries" :key="entry.id">
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap" x-text="entry.title"></td>
-                        <td class="px-6 py-4 whitespace-nowrap" x-text="entry.type.charAt(0).toUpperCase() + entry.type.slice(1)"></td>
-                        <td class="px-6 py-4 whitespace-nowrap" x-text="'$' + entry.amount.toFixed(2)"></td>
-                        <td class="px-6 py-4 whitespace-nowrap" x-text="entry.description || '-'"></td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <button
-                                @click="deleteEntry(entry.id)"
-                                class="text-red-600 hover:text-red-800"
-                            >
-                                <x-lucide-trash class="w-5 h-5" />
-                            </button>
-                        </td>
-                    </tr>
-                </template>
-                </tbody>
-            </table>
-        </div>
+    <!-- View Entries -->
+    <div class="flex-1">
+        <h2 class="text-lg font-medium mb-4 text-[#0f2360]">View Entries</h2>
+        <button
+            @click="$dispatch('popup-open', {
+                title: 'View Entries',
+                view: 'account-view-entries',
+                data: null
+            })"
+            class="w-full bg-[#fd9c0a] text-white py-2 px-4 rounded-md hover:bg-[#e08c09] focus:outline-none flex items-center justify-center"
+        >
+            <x-lucide-eye class="w-5 h-5 mr-2" />
+            View
+        </button>
     </div>
 </div>
+                </main>
+            </div>
+        </div>
+
+        <!-- Popup -->
+        @include('components.popup')
+
+    </div>
+    <script>
+        window.layoutHandler = () => ({
+            sidebarOpen: JSON.parse(localStorage.getItem('sidebarOpen')) || false,
+
+            popup: {
+                open: false,
+                title: '',
+                content: '',
+                requestId: 0,
+            },
+
+            toggleSidebar() {
+                this.sidebarOpen = !this.sidebarOpen;
+                localStorage.setItem('sidebarOpen', JSON.stringify(this.sidebarOpen));
+            },
+
+            init() {
+                this.$watch('sidebarOpen', value => {
+                    localStorage.setItem('sidebarOpen', JSON.stringify(value));
+                });
+
+                window.addEventListener('popup-open', (e) => {
+                    const { title, view } = e.detail;
+                    this.open(title, view);
+                });
+            },
+
+            async open(title, bladeRoute) {
+                this.popup.requestId++; // 🆕 Increment ID for new request
+                const currentId = this.popup.requestId;
+
+                this.popup.title = title;
+                this.popup.content = 'Loading...';
+
+                try {
+                    const response = await fetch(`/popup/${bladeRoute}`);
+                    const html = await response.text();
+
+                    // 🛑 If another request was made after this, cancel update
+                    if (currentId !== this.popup.requestId) return;
+
+                    this.popup.content = html;
+                    this.popup.open = true;
+                } catch (e) {
+                    if (currentId !== this.popup.requestId) return;
+
+                    this.popup.content = '<div class="text-red-500">Failed to load content.</div>';
+                    this.popup.open = true;
+                }
+            },
+        });
+    </script>
+</x-app-layout>
+
+<script>
+    function accountComponent() {
+        return {
+            popup: {
+                open: false,
+                title: '',
+                content: '',
+                data: null,
+                requestId: 0,
+            },
+            formData: { title: '', type: 'income', amount: '', description: '' },
+            errors: {},
+            success: false,
+            titles: [
+                'Sales Revenue', 'Supplier Payment', 'Utility Bill', 'Employee Bonus', 'Maintenance Cost'
+            ],
+            validate() {
+                const newErrors = {};
+                if (!this.formData.title.trim()) newErrors.title = 'Title is required';
+                if (!this.formData.amount.trim()) {
+                    newErrors.amount = 'Amount is required';
+                } else if (isNaN(parseFloat(this.formData.amount)) || parseFloat(this.formData.amount) <= 0) {
+                    newErrors.amount = 'Please enter a valid amount';
+                }
+                this.errors = newErrors;
+                return Object.keys(newErrors).length === 0;
+            },
+            handleSubmit(event) {
+                event.preventDefault();
+                if (this.validate()) {
+                    console.log('Entry added:', this.formData);
+                    this.entries.push({
+                        id: this.entries.length + 1,
+                        title: this.formData.title,
+                        type: this.formData.type,
+                        amount: parseFloat(this.formData.amount),
+                        description: this.formData.description
+                    });
+                    this.success = true;
+                    setTimeout(() => {
+                        this.success = false;
+                        this.formData = { title: '', type: 'income', amount: '', description: '' };
+                        this.errors = {};
+                    }, 3000);
+                }
+            },
+            initPopup() {
+                window.addEventListener('popup-open', (e) => {
+                    const { title, view, data } = e.detail;
+                    this.popup.data = data;
+                    this.loadPopup(title, view);
+                });
+            },
+            async loadPopup(title, bladeRoute) {
+                this.popup.requestId++;
+                const currentId = this.popup.requestId;
+
+                this.popup.title = title;
+                this.popup.content = 'Loading...';
+
+                try {
+                    const response = await fetch(`/popup/${bladeRoute}`);
+                    const html = await response.text();
+
+                    if (currentId !== this.popup.requestId) return;
+
+                    this.popup.content =
+                        `<script>window.popupData = ${JSON.stringify(this.popup.data)}<\/script>` + html;
+
+                    this.popup.open = true;
+                } catch (e) {
+                    if (currentId !== this.popup.requestId) return;
+
+                    this.popup.content = '<div class="text-red-500">Failed to load content.</div>';
+                    this.popup.open = true;
+                }
+            },
+        };
+    }
+</script>

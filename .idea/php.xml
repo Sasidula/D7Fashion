@@ -122,6 +122,8 @@
       <path value="$PROJECT_DIR$/MIS/vendor/blade-ui-kit/blade-icons" />
       <path value="$PROJECT_DIR$/MIS/vendor/mallardduck/blade-lucide-icons" />
       <path value="$PROJECT_DIR$/MIS/vendor/codeat3/blade-clarity-icons" />
+      <path value="$PROJECT_DIR$/MIS/vendor/barryvdh/laravel-debugbar" />
+      <path value="$PROJECT_DIR$/MIS/vendor/php-debugbar/php-debugbar" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />

@@ -1,4 +1,8 @@
 <!-- resources/views/layouts/dashboard.blade.php -->
+@php
+    use Illuminate\Support\Facades\Auth;
+    $isAdminOrManager = Auth::check() && in_array(Auth::user()->role, ['admin', 'manager']);
+@endphp
 <x-app-layout>
     <div
         x-data="layoutHandler()"
@@ -10,7 +14,7 @@
 
         <div class="flex-1 flex overflow-hidden">
             <!-- Sidebar -->
-            @include('components.sidebar', ['currentPage' => $page])
+            @include('components.sidebar', ['currentPage' => 'home'])
 
             <!-- Overlay (Mobile Only) -->
             <div
@@ -28,7 +32,38 @@
             <!-- Page content wrapper -->
             <div class="flex-1 overflow-y-auto transition-all duration-300 ease-in-out">
                 <main class="p-6">
-                    @includeIf("pages.$page")
+                    <div>
+                        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                            @if (session('success'))
+                                <div class="mb-4 text-green-600 bg-green-100 border border-green-300 rounded p-3">
+                                    {{ session('success') }}
+                                </div>
+                            @endif
+                            @if (session('status'))
+                                <div class="mb-4 text-green-600 bg-green-100 border border-green-300 rounded p-3">
+                                    {{ session('status') }}
+                                </div>
+                            @endif
+                            @if ($errors->any())
+                                <div class="mb-4 text-red-600 bg-red-100 border border-red-300 rounded p-3">
+                                    <ul class="list-disc list-inside">
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                                <div class="p-6 bg-white border-b border-gray-200">
+                                    You're logged in!
+                                    @if($isAdminOrManager)
+                                        <br>
+                                        Hello, {{ Auth::user()->name }} you are an Manager
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </main>
             </div>
         </div>

@@ -12,7 +12,8 @@ class InternalProductController extends Controller
      */
     public function index()
     {
-        //
+        $products = InternalProduct::withTrashed()->get();
+        return view('internal_products.index', compact('products'));
     }
 
     /**
@@ -20,7 +21,7 @@ class InternalProductController extends Controller
      */
     public function create()
     {
-        //
+        return view('internal_products.create');
     }
 
     /**
@@ -28,7 +29,19 @@ class InternalProductController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+            'sku_code' => 'nullable|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        InternalProduct::create($request->only(['name', 'price', 'description', 'sku_code']));
+        return redirect()->route('internal_products.index')->with('success', 'Product created.');
     }
 
     /**
@@ -36,7 +49,7 @@ class InternalProductController extends Controller
      */
     public function show(InternalProduct $internalProduct)
     {
-        //
+        return view('internal_products.show', compact('internalProduct'));
     }
 
     /**
@@ -44,7 +57,7 @@ class InternalProductController extends Controller
      */
     public function edit(InternalProduct $internalProduct)
     {
-        //
+        return view('internal_products.edit', compact('internalProduct'));
     }
 
     /**
@@ -52,7 +65,19 @@ class InternalProductController extends Controller
      */
     public function update(Request $request, InternalProduct $internalProduct)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+            'sku_code' => 'nullable|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $internalProduct->update($request->only(['name', 'price', 'description', 'sku_code']));
+        return redirect()->route('internal_products.index')->with('success', 'Product updated.');
     }
 
     /**
@@ -60,6 +85,7 @@ class InternalProductController extends Controller
      */
     public function destroy(InternalProduct $internalProduct)
     {
-        //
+        $internalProduct->delete();
+        return redirect()->route('internal_products.index')->with('success', 'Product deleted.');
     }
 }

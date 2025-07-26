@@ -124,6 +124,8 @@
       <excludeFolder url="file://$MODULE_DIR$/MIS/vendor/voku/portable-ascii" />
       <excludeFolder url="file://$MODULE_DIR$/MIS/vendor/webmozart/assert" />
       <excludeFolder url="file://$MODULE_DIR$/MIS/vendor/codeat3/blade-clarity-icons" />
+      <excludeFolder url="file://$MODULE_DIR$/MIS/vendor/barryvdh/laravel-debugbar" />
+      <excludeFolder url="file://$MODULE_DIR$/MIS/vendor/php-debugbar/php-debugbar" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

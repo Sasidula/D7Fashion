@@ -10,5 +10,5 @@ class MaterialStock extends Model {
 
     protected $fillable = ['material_id', 'status'];
 
-    public function material() { return $this->belongsTo(Material::class); }
+    public function material() { return $this->belongsTo(Material::class)->withTrashed(); }
 }

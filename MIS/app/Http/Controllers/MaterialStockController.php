@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Material;
 use App\Models\MaterialStock;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class MaterialStockController extends Controller
 {
@@ -12,7 +14,8 @@ class MaterialStockController extends Controller
      */
     public function index()
     {
-        //
+        $stocks = MaterialStock::with('material')->get();
+        return view('material_stocks.index', compact('stocks'));
     }
 
     /**
@@ -20,7 +23,8 @@ class MaterialStockController extends Controller
      */
     public function create()
     {
-        //
+        $materials = Material::all();
+        return view('material_stocks.create', compact('materials'));
     }
 
     /**
@@ -28,7 +32,17 @@ class MaterialStockController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'material_id' => 'required|exists:materials,id',
+            'status' => 'required|in:available,unavailable',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        MaterialStock::create($request->only(['material_id', 'status']));
+        return redirect()->route('material_stocks.index')->with('success', 'Stock created.');
     }
 
     /**
@@ -36,7 +50,7 @@ class MaterialStockController extends Controller
      */
     public function show(MaterialStock $materialStock)
     {
-        //
+        return view('material_stocks.show', compact('materialStock'));
     }
 
     /**
@@ -44,7 +58,8 @@ class MaterialStockController extends Controller
      */
     public function edit(MaterialStock $materialStock)
     {
-        //
+        $materials = Material::all();
+        return view('material_stocks.edit', compact('materialStock', 'materials'));
     }
 
     /**
@@ -52,7 +67,17 @@ class MaterialStockController extends Controller
      */
     public function update(Request $request, MaterialStock $materialStock)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'material_id' => 'required|exists:materials,id',
+            'status' => 'required|in:available,unavailable',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $materialStock->update($request->only(['material_id', 'status']));
+        return redirect()->route('material_stocks.index')->with('success', 'Stock updated.');
     }
 
     /**
@@ -60,6 +85,7 @@ class MaterialStockController extends Controller
      */
     public function destroy(MaterialStock $materialStock)
     {
-        //
+        $materialStock->delete();
+        return redirect()->route('material_stocks.index')->with('success', 'Stock deleted.');
     }
 }

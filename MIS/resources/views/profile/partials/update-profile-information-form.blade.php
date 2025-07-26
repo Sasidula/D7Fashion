@@ -47,6 +47,38 @@
             @endif
         </div>
 
+        <div>
+            <x-input-label for="phone_number" :value="__('Phone Number')" />
+            <x-text-input id="phone_number" name="phone_number" type="text" class="mt-1 block w-full" :value="old('phone_number', $user->phone_number)" autocomplete="tel" />
+            <x-input-error class="mt-2" :messages="$errors->get('phone_number')" />
+        </div>
+
+        <div>
+            <x-input-label for="role" :value="__('Role')" />
+            <select id="role" name="role" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                @foreach(['admin', 'manager', 'employee'] as $role)
+                    <option value="{{ $role }}" @selected(old('role', $user->role) === $role)>{{ ucfirst($role) }}</option>
+                @endforeach
+            </select>
+            <x-input-error class="mt-2" :messages="$errors->get('role')" />
+        </div>
+
+        <div>
+            <x-input-label for="salary_type" :value="__('Salary Type')" />
+            <select id="salary_type" name="salary_type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                @foreach(['hourly', 'monthly', 'none'] as $type)
+                    <option value="{{ $type }}" @selected(old('salary_type', $user->salary_type) === $type)>{{ ucfirst($type) }}</option>
+                @endforeach
+            </select>
+            <x-input-error class="mt-2" :messages="$errors->get('salary_type')" />
+        </div>
+
+        <div>
+            <x-input-label for="salary_amount" :value="__('Salary Amount')" />
+            <x-text-input id="salary_amount" name="salary_amount" type="number" step="0.01" class="mt-1 block w-full" :value="old('salary_amount', $user->salary_amount)" />
+            <x-input-error class="mt-2" :messages="$errors->get('salary_amount')" />
+        </div>
+
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Save') }}</x-primary-button>
 

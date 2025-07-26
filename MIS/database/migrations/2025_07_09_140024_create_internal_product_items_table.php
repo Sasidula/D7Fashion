@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('internal_product_id')->constrained()->onDelete('cascade');
             $table->foreignId('assignment_id')->constrained('material_assignments')->onDelete('cascade');
-            $table->enum('status', ['approved', 'rejected']);
+            $table->enum('use', ['approved', 'rejected']);
+            $table->enum('status', ['available', 'sold'])->default('available');
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });

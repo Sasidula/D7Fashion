@@ -1,4 +1,5 @@
 <!-- resources/views/components/popup.blade.php -->
+<x-app-layout>
 <template x-if="popup.open">
     <div
         x-transition.opacity
@@ -25,3 +26,4 @@
         </div>
     </div>
 </template>
+</x-app-layout>

@@ -16,7 +16,8 @@ class InternalProductItemFactory extends Factory
         return [
             'internal_product_id' => InternalProduct::inRandomOrder()->first()->id,
             'assignment_id' => MaterialAssignment::inRandomOrder()->first()->id,
-            'status' => $this->faker->randomElement(['approved', 'rejected']),
+            'use' => $this->faker->randomElement(['approved', 'rejected']),
+            'status' => $this->faker->randomElement(['available', 'sold']),
             'created_by' => User::where('role', '!=', 'employee')->inRandomOrder()->first()->id,
         ];
     }

@@ -20,9 +20,10 @@ return new class extends Migration
             $table->string('phone_number')->nullable(); // Added
             $table->enum('role', ['admin', 'manager', 'employee'])->default('employee'); // Added
             $table->enum('salary_type', ['hourly', 'monthly', 'none'])->default('none'); // Added
-            $table->decimal('salary_amount', 10, 2)->nullable(); // Added
+            $table->decimal('salary_amount', 10, 2)->nullable();
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

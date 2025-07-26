@@ -94,15 +94,20 @@
                             </svg>
                             Login
                         </button>
-
-                        @if (Route::has('password.request'))
-                            <div class="text-right mt-4">
-                                <a class="underline text-sm text-gray-600 hover:text-gray-900" href="{{ route('password.request') }}">
-                                    {{ __('Forgot your password?') }}
-                                </a>
-                            </div>
-                        @endif
                     </form>
+
+                    @if (Route::has('password.request'))
+                        <div class="text-right mt-4">
+                            <a
+                                x-data=""
+                                x-on:click.prevent="$dispatch('open-modal', 'reset-password')"
+                            ><u>Reset Password</u></a>
+
+                            <x-modal name="reset-password" focusable>
+                                @include('auth.forgot-password')
+                            </x-modal>
+                        </div>
+                    @endif
 
                     <div class="mt-6 text-center">
                         <p class="text-sm text-gray-600">D7Fashion © {{ date('Y') }} All Rights Reserved</p>

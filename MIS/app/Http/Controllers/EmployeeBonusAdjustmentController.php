@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\EmployeeBonusAdjustment;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Validator;
 
 class EmployeeBonusAdjustmentController extends Controller
 {
@@ -12,7 +15,8 @@ class EmployeeBonusAdjustmentController extends Controller
      */
     public function index()
     {
-        //
+        $employees = User::where('role', 'employee')->get();
+        return view('pages.add-bonus-deduction', compact('employees'));
     }
 
     /**
@@ -20,7 +24,8 @@ class EmployeeBonusAdjustmentController extends Controller
      */
     public function create()
     {
-        //
+        $users = User::all();
+        return view('pages.add-bonus-deduction', compact('users'));
     }
 
     /**
@@ -28,7 +33,18 @@ class EmployeeBonusAdjustmentController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // Validate and automatically retrieve validated data
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'title' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0',
+            'action' => 'required|in:add,remove',
+        ]);
+
+        // Store the bonus adjustment
+        EmployeeBonusAdjustment::create($validated);
+
+        return redirect()->route('employees.bonus')->with('success', 'Adjustment created.');
     }
 
     /**
@@ -36,7 +52,7 @@ class EmployeeBonusAdjustmentController extends Controller
      */
     public function show(EmployeeBonusAdjustment $employeeBonusAdjustment)
     {
-        //
+        return view('employee_bonus_adjustments.show', compact('employeeBonusAdjustment'));
     }
 
     /**
@@ -44,7 +60,8 @@ class EmployeeBonusAdjustmentController extends Controller
      */
     public function edit(EmployeeBonusAdjustment $employeeBonusAdjustment)
     {
-        //
+        $users = User::all();
+        return view('employee_bonus_adjustments.edit', compact('employeeBonusAdjustment', 'users'));
     }
 
     /**
@@ -52,7 +69,19 @@ class EmployeeBonusAdjustmentController extends Controller
      */
     public function update(Request $request, EmployeeBonusAdjustment $employeeBonusAdjustment)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'title' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0',
+            'action' => 'required|in:add,remove',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $employeeBonusAdjustment->update($request->only(['user_id', 'title', 'amount', 'action']));
+        return redirect()->route('employee_bonus_adjustments.index')->with('success', 'Adjustment updated.');
     }
 
     /**
@@ -60,6 +89,7 @@ class EmployeeBonusAdjustmentController extends Controller
      */
     public function destroy(EmployeeBonusAdjustment $employeeBonusAdjustment)
     {
-        //
+        $employeeBonusAdjustment->delete();
+        return redirect()->route('employee_bonus_adjustments.index')->with('success', 'Adjustment deleted.');
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\MonthlyExpensesList;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class MonthlyExpensesListController extends Controller
 {
@@ -12,7 +13,8 @@ class MonthlyExpensesListController extends Controller
      */
     public function index()
     {
-        //
+        $expenses = MonthlyExpensesList::withTrashed()->get();
+        return view('monthly_expenses_lists.index', compact('expenses'));
     }
 
     /**
@@ -20,7 +22,7 @@ class MonthlyExpensesListController extends Controller
      */
     public function create()
     {
-        //
+        return view('monthly_expenses_lists.create');
     }
 
     /**
@@ -28,7 +30,16 @@ class MonthlyExpensesListController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        MonthlyExpensesList::create($request->only(['title']));
+        return redirect()->route('monthly_expenses_lists.index')->with('success', 'Expense list created.');
     }
 
     /**
@@ -36,7 +47,7 @@ class MonthlyExpensesListController extends Controller
      */
     public function show(MonthlyExpensesList $monthlyExpensesList)
     {
-        //
+        return view('monthly_expenses_lists.show', compact('monthlyExpensesList'));
     }
 
     /**
@@ -44,7 +55,7 @@ class MonthlyExpensesListController extends Controller
      */
     public function edit(MonthlyExpensesList $monthlyExpensesList)
     {
-        //
+        return view('monthly_expenses_lists.edit', compact('monthlyExpensesList'));
     }
 
     /**
@@ -52,7 +63,16 @@ class MonthlyExpensesListController extends Controller
      */
     public function update(Request $request, MonthlyExpensesList $monthlyExpensesList)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $monthlyExpensesList->update($request->only(['title']));
+        return redirect()->route('monthly_expenses_lists.index')->with('success', 'Expense list updated.');
     }
 
     /**
@@ -60,6 +80,7 @@ class MonthlyExpensesListController extends Controller
      */
     public function destroy(MonthlyExpensesList $monthlyExpensesList)
     {
-        //
+        $monthlyExpensesList->delete();
+        return redirect()->route('monthly_expenses_lists.index')->with('success', 'Expense list deleted.');
     }
 }

@@ -14,8 +14,30 @@ class InternalProductSeeder extends Seeder
     public function run()
     {
         InternalProduct::insert([
-            ['name' => 'Plain T-Shirt', 'price' => 500.00, 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Formal Shirt', 'price' => 800.00, 'created_at' => now(), 'updated_at' => now()],
+            [
+                'name' => 'Plain T-Shirt',
+                'description' => 'Internal shirt product',
+                'sku_code' => 'INT-1001',
+                'price' => 500.00,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'name' => 'Formal Shirt',
+                'description' => 'Internal shirt product',
+                'sku_code' => 'INT-1002',
+                'price' => 800.00,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'name' => 'casual Shirt',
+                'description' => 'Internal shirt product',
+                'sku_code' => 'INT-1003',
+                'price' => 800.00,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
         ]);
     }
 }

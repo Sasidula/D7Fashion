@@ -14,10 +14,11 @@ return new class extends Migration
         Schema::create('external_product_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('external_product_id')->constrained()->onDelete('cascade');
+            $table->enum('status', ['available', 'sold'])->default('available');
+            $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });
     }
-
     /**
      * Reverse the migrations.
      */

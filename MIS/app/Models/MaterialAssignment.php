@@ -12,7 +12,7 @@ class MaterialAssignment extends Model {
 
     public function stock() { return $this->belongsTo(MaterialStock::class); }
 
-    public function user() { return $this->belongsTo(User::class); }
+    public function user() { return $this->belongsTo(User::class)->withTrashed(); }
 
-    public function assigner() { return $this->belongsTo(User::class, 'assigned_by'); }
+    public function assigner() { return $this->belongsTo(User::class, 'assigned_by')->withTrashed(); }
 }

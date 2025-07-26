@@ -1,3 +1,8 @@
+@php
+    use Illuminate\Support\Facades\Auth;
+    $isAdminOrManager = Auth::check() && in_array(Auth::user()->role, ['admin', 'manager']);
+    $isManager = Auth::check() && in_array(Auth::user()->role, ['manager']);
+@endphp
 <header class="bg-[#0f2360] text-white h-16 flex items-center justify-between px-4 shadow-md relative z-40">
     <div class="flex items-center">
         <!-- Sidebar Toggle -->
@@ -51,16 +56,20 @@
             <div class="py-1">
                 <a href="#"
                    @click.prevent="$dispatch('popup-open', { title: 'Edit Profile', view: 'edit' })"
+{{--                   @click.prevent="$dispatch('open-modal', 'edit-profile');"--}}
                    class="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100">
                     <x-lucide-edit class="w-4 h-4 mr-2" />
                     Edit Profile
                 </a>
+                @if ($isAdminOrManager)
                 <a href="#"
                    @click.prevent="$dispatch('popup-open', { title: 'Create User', view: 'register' })"
+{{--                   @click.prevent="$dispatch('open-modal', 'create-user');"--}}
                    class="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100">
                     <x-lucide-user-plus class="w-4 h-4 mr-2" />
                     Create User
                 </a>
+                @endif
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit"
@@ -72,4 +81,72 @@
             </div>
         </div>
     </div>
+    <!--
+    <x-modal name="create-user" :show="$errors->any() || session('success')"  :scrollable="true" focusable>
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-3xl mx-4 overflow-hidden">
+            <div class="max-h-[90vh] overflow-y-auto rounded-lg scrollbar-thin">
+
+                Popup Header
+                <div class="flex items-center justify-between p-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+                    <button x-on:click="$dispatch('close')"  class="text-gray-600 hover:text-gray-900">
+                        <x-lucide-arrow-left class="w-6 h-6" />
+                    </button>
+                    <h2 class="text-lg font-semibold text-gray-800">Create User</h2>
+                    <div class="w-6"></div>
+                </div>
+
+                body
+                <div class="p-6">
+                    @inclu/de('profile.partials.create-user-form')
+                </div>
+            </div>
+        </div>
+    </x-modal>
+    <x-modal name="edit-profile" :show="$errors->any() || session('status')"  :scrollable="true" focusable>
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-3xl mx-4 overflow-hidden">
+            <div class="max-h-[90vh] overflow-y-auto rounded-lg scrollbar-thin">
+                 Popup Header
+                <div class="flex items-center justify-between p-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+                    <button x-on:click="$dispatch('close')"  class="text-gray-600 hover:text-gray-900">
+                        <x-lucide-arrow-left class="w-6 h-6" />
+                    </button>
+                    <h2 class="text-lg font-semibold text-gray-800">Edit User</h2>
+                    <div class="w-6"></div>
+                </div>
+
+                body
+                <div class="p-6">
+                    <div class="space-y-6">
+                        <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
+                            <div class="max-w-xl">
+                                @in/clude('profile.partials.update-profile-information-form')
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <div class="space-y-6">
+                        <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
+                            <div class="max-w-xl">
+                                @inc/lude('profile.partials.update-password-form')
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @i/f ($isManager)
+                <div class="p-6">
+                    <div class="space-y-6">
+                        <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
+                            <div class="max-w-xl">
+                                @incl/ude('profile.partials.delete-user-form')
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @e/ndif
+            </div>
+        </div>
+    </x-modal> -->
 </header>

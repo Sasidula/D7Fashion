@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\MaterialAssignment;
+use App\Models\MaterialStock;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class MaterialAssignmentController extends Controller
@@ -12,7 +14,8 @@ class MaterialAssignmentController extends Controller
      */
     public function index()
     {
-        //
+        $assignments = MaterialAssignment::with(['stock', 'user', 'assigner'])->get();
+        return view('material_assignments.index', compact('assignments'));
     }
 
     /**
@@ -20,7 +23,9 @@ class MaterialAssignmentController extends Controller
      */
     public function create()
     {
-        //
+        $stocks = MaterialStock::all();
+        $users = User::all();
+        return view('material_assignments.create', compact('stocks', 'users'));
     }
 
     /**
@@ -28,7 +33,20 @@ class MaterialAssignmentController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'material_stock_id' => 'required|exists:material_stocks,id',
+            'user_id' => 'required|exists:users,id',
+            'assigned_by' => 'required|exists:users,id',
+            'status' => 'required|in:incomplete,complete',
+            'notes' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        MaterialAssignment::create($request->only(['material_stock_id', 'user_id', 'assigned_by', 'status', 'notes']));
+        return redirect()->route('material_assignments.index')->with('success', 'Assignment created.');
     }
 
     /**
@@ -36,7 +54,7 @@ class MaterialAssignmentController extends Controller
      */
     public function show(MaterialAssignment $materialAssignment)
     {
-        //
+        return view('material_assignments.show', compact('materialAssignment'));
     }
 
     /**
@@ -44,7 +62,9 @@ class MaterialAssignmentController extends Controller
      */
     public function edit(MaterialAssignment $materialAssignment)
     {
-        //
+        $stocks = MaterialStock::all();
+        $users = User::all();
+        return view('material_assignments.edit', compact('materialAssignment', 'stocks', 'users'));
     }
 
     /**
@@ -52,7 +72,20 @@ class MaterialAssignmentController extends Controller
      */
     public function update(Request $request, MaterialAssignment $materialAssignment)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'material_stock_id' => 'required|exists:material_stocks,id',
+            'user_id' => 'required|exists:users,id',
+            'assigned_by' => 'required|exists:users,id',
+            'status' => 'required|in:incomplete,complete',
+            'notes' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $materialAssignment->update($request->only(['material_stock_id', 'user_id', 'assigned_by', 'status', 'notes']));
+        return redirect()->route('material_assignments.index')->with('success', 'Assignment updated.');
     }
 
     /**
@@ -60,6 +93,7 @@ class MaterialAssignmentController extends Controller
      */
     public function destroy(MaterialAssignment $materialAssignment)
     {
-        //
+        $materialAssignment->delete();
+        return redirect()->route('material_assignments.index')->with('success', 'Assignment deleted.');
     }
 }

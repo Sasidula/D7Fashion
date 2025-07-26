@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ProductSale;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class ProductSaleController extends Controller
 {
@@ -12,7 +13,8 @@ class ProductSaleController extends Controller
      */
     public function index()
     {
-        //
+        $sales = ProductSale::with('items')->get();
+        return view('product_sales.index', compact('sales'));
     }
 
     /**
@@ -20,7 +22,7 @@ class ProductSaleController extends Controller
      */
     public function create()
     {
-        //
+        return view('product_sales.create');
     }
 
     /**
@@ -28,7 +30,16 @@ class ProductSaleController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'price' => 'required|numeric|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        ProductSale::create($request->only(['price']));
+        return redirect()->route('product_sales.index')->with('success', 'Sale created.');
     }
 
     /**
@@ -36,7 +47,7 @@ class ProductSaleController extends Controller
      */
     public function show(ProductSale $productSale)
     {
-        //
+        return view('product_sales.show', compact('productSale'));
     }
 
     /**
@@ -44,7 +55,7 @@ class ProductSaleController extends Controller
      */
     public function edit(ProductSale $productSale)
     {
-        //
+        return view('product_sales.edit', compact('productSale'));
     }
 
     /**
@@ -52,7 +63,16 @@ class ProductSaleController extends Controller
      */
     public function update(Request $request, ProductSale $productSale)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'price' => 'required|numeric|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $productSale->update($request->only(['price']));
+        return redirect()->route('product_sales.index')->with('success', 'Sale updated.');
     }
 
     /**
@@ -60,6 +80,7 @@ class ProductSaleController extends Controller
      */
     public function destroy(ProductSale $productSale)
     {
-        //
+        $productSale->delete();
+        return redirect()->route('product_sales.index')->with('success', 'Sale deleted.');
     }
 }

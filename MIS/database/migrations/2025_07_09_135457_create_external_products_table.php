@@ -14,9 +14,13 @@ return new class extends Migration
         Schema::create('external_products', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->text('description')->nullable();
+            $table->string('supplier')->nullable();
+            $table->string('sku_code')->nullable();
             $table->decimal('bought_price', 10, 2);
             $table->decimal('sold_price', 10, 2);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -28,7 +28,7 @@ class UserFactory extends Factory
                 ? $this->faker->randomFloat(2, 300.00, 1000.00)
                 : $this->faker->randomFloat(2, 20000.00, 60000.00),
             'email_verified_at' => now(),
-            'password' => Hash::make('password'), // default password
+            'password' => Hash::make('password'),
             'remember_token' => Str::random(10),
         ];
     }
