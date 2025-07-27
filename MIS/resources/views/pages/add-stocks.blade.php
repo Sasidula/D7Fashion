@@ -27,31 +27,49 @@
             <!-- Page content wrapper -->
             <div class="flex-1 overflow-y-auto transition-all duration-300 ease-in-out">
                 <main class="p-6">
-<div class="bg-white rounded-lg shadow-md p-20 flex flex-col  items-center ">
+                    <!-- Success Message -->
+                    @if(session('success'))
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6 flex items-center">
+                            <x-lucide-check class="w-5 h-5 mr-2" />
+                            <span>{{ session('success') }}</span>
+                        </div>
+                    @endif
+                    <div class="bg-white rounded-lg shadow-md p-20 flex flex-col items-center">
+                        <h2 class="text-2xl font-bold mb-6 text-[#2a3f7d]">Material Stock - in</h2>
 
-    <h2 class="text-2xl font-bold mb-6 text-[#2a3f7d]" >Material Stock - in</h2>
+                        <form method="POST" action="{{ route('stocks.store') }}">
+                            @csrf
 
-    <form>
-        <div class="w-80 flex flex-col pb-10">
-            <label class="block text-gray-700 mb-1" for="fullName">Select material </label>
-            <select name="" id=" "  class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
-        </div>
+                            <div class="w-80 flex flex-col pb-10">
+                                <label class="block text-gray-700 mb-1">Select Material</label>
+                                <select name="material_id" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                    <option value="" disabled selected>-- Select Material --</option>
+                                    @foreach($materials as $material)
+                                        <option value="{{ $material->id }}">{{ $material->name }} - Rs. {{ $material->price }}</option>
+                                    @endforeach
+                                </select>
+                                @error('material_id') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
 
-        <div class="w-80 flex flex-col pb-10">
-            <label class="block text-gray-700 mb-1" for="fullName">material Contity</label>
-            <input id="fullName" type="text" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
+                            <div class="w-80 flex flex-col pb-10">
+                                <label class="block text-gray-700 mb-1">Material Quantity</label>
+                                <input name="quantity" type="number" min="1" value="1" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                                @error('quantity') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
 
-        <button type="submit" class="flex items-center justify-center w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 rounded-md mb-20">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9l-6 6-6-6"/>
-            </svg>
-            Save
-        </button>
-    </form>
-</div>
+                            <input type="hidden" name="status" value="available" />
+
+                            <button type="submit" class="flex items-center justify-center w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 rounded-md mb-20">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9l-6 6-6-6"/>
+                                </svg>
+                                Save
+                            </button>
+                        </form>
+                    </div>
                 </main>
             </div>
+
         </div>
 
         <!-- Popup -->

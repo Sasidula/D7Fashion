@@ -13,8 +13,8 @@ class MaterialController extends Controller
      */
     public function index()
     {
-        $materials = Material::withTrashed()->get();
-        return view('materials.index', compact('materials'));
+        $materials = Material::all();
+        return view('pages.add-stocks', compact('materials'));
     }
 
     /**
@@ -22,7 +22,7 @@ class MaterialController extends Controller
      */
     public function create()
     {
-        return view('materials.create');
+        return view('pages.create-stocks');
     }
 
     /**
@@ -42,7 +42,7 @@ class MaterialController extends Controller
         }
 
         Material::create($request->only(['name', 'supplier', 'description', 'price']));
-        return redirect()->route('stocks.create')->with('success', 'Material created.');
+        return redirect()->route('pages.create-stocks')->with('success', 'Material created.');
 
     }
 
@@ -51,7 +51,7 @@ class MaterialController extends Controller
      */
     public function show(Material $material)
     {
-        return view('materials.show', compact('material'));
+        return view('pages.manage-stocks', compact('material'));
     }
 
     /**
@@ -59,15 +59,18 @@ class MaterialController extends Controller
      */
     public function edit(Material $material)
     {
-        return view('materials.show', compact('material'));
+        return view('pages.manage-stocks', compact('material'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Material $material)
+    public function update(Request $request)
     {
+        $material = Material::find($request->input('material_id'));
+
         $validator = Validator::make($request->all(), [
+            'material_id' => 'required|exists:materials,id',
             'name' => 'required|string|max:255',
             'supplier' => 'nullable|string|max:255',
             'description' => 'nullable|string',
@@ -75,12 +78,24 @@ class MaterialController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+            $materialData = $material ? $material->only(['id', 'name', 'supplier', 'description', 'price']) : null;
+
+            return redirect()
+                ->back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('updatedMaterial', $materialData);
         }
 
+        $material = Material::findOrFail($request->input('material_id'));
         $material->update($request->only(['name', 'supplier', 'description', 'price']));
-        return redirect()->route('materials.index')->with('success', 'Material updated.');
+
+        return redirect()
+            ->route('stocks.manage')
+            ->with('status', 'Material updated.')
+            ->with('updatedMaterial', $material->only(['id', 'name', 'supplier', 'description', 'price']));
     }
+
 
     /**
      * Remove the specified resource from storage.
@@ -88,6 +103,6 @@ class MaterialController extends Controller
     public function destroy(Material $material)
     {
         $material->delete();
-        return redirect()->route('materials.index')->with('success', 'Material deleted.');
+        return redirect()->route('pages.manage-stocks')->with('success', 'Material deleted.');
     }
 }

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('material_stocks', function (Blueprint $table) {
             $table->id();
             $table->foreignId('material_id')->constrained()->onDelete('cascade');
-            $table->enum('status', ['available', 'unavailable']);
+            $table->enum('status', ['available', 'unavailable','deleted']);
             $table->timestamps();
         });
     }

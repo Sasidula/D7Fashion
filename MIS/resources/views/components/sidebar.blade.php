@@ -4,7 +4,7 @@
     use Illuminate\Support\Facades\Auth;
 
     $productPages = ['add-internal-product', 'add-external-product', 'manage-product'];
-    $materialsPages = ['manage-stocks', 'view-stocks', 'add-stocks', 'edit-stocks'];
+    $materialsPages = ['manage-stocks', 'create-stocks', 'add-stocks'];
     $employeePages = ['add-employee', 'manage-employee', 'add-bonus-deduction'];
     $assignmentPages = ['add-assignment', 'accept-assignment', 'manage-assignment'];
 

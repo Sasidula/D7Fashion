@@ -80,8 +80,7 @@
                                             <!--Edit Button -->
                                             <button
                                                 @click="$store.modal.setSelectedEmployee(employee);"
-                                                @click.prevent="
-                                                    $dispatch('open-modal', 'edit-employee');"
+                                                @click.prevent="$dispatch('open-modal', 'edit-employee');"
                                                 class="text-[#0f2360] hover:text-[#fd9c0a]"
                                             >
                                                 <x-lucide-edit class="w-5 h-5" />

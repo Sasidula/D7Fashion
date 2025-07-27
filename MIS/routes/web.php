@@ -4,6 +4,7 @@ use App\Http\Controllers\EmployeeBonusAdjustmentController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\InternalProductController;
 use App\Http\Controllers\MaterialController;
+use App\Http\Controllers\MaterialStockController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -44,10 +45,20 @@ Route::get('/dashboard/{page?}', function ($page = 'home') {
 
 // =================== NON-MODULAR DASHBOARD ROUTES =================== //
 
+Route::get('/dashboard', function () {
+    return redirect('/dashboard/home');
+});
+
+
 Route::middleware(['auth', 'restrict.employee'])->group(function () {
 
-    // Dashboard Home
+    //to dashboard
     Route::get('/dashboard', function () {
+        return redirect('/dashboard/home');
+    });
+
+    // Dashboard Home
+    Route::get('/dashboard/home', function () {
         return view('pages.home');
     })->name('dashboard');
 
@@ -55,19 +66,6 @@ Route::middleware(['auth', 'restrict.employee'])->group(function () {
     Route::get('/dashboard/counter', function () {
         return view('pages.counter');
     })->name('counter');
-
-    // Employee Management
-    Route::get('/dashboard/manage-employee', function () {
-        return view('pages.manage-employee');
-    })->name('employees.index');
-    Route::get('/dashboard/add-employee', function () {
-        return view('pages.add-employee');
-    })->name('employees.create');
-    Route::post('/dashboard/add-employee', function () {
-        return view('pages.add-employee');
-    })->name('employees.store');
-    Route::get('/dashboard/add-bonus-deduction', [EmployeeBonusAdjustmentController::class, 'index'])
-        ->name('employees.bonus');
 
     // Attendance
     Route::get('/dashboard/attendance', function () {
@@ -115,16 +113,6 @@ Route::middleware(['auth', 'restrict.employee'])->group(function () {
         return view('pages.manage-product');
     })->name('products.manage');
 
-    // Stocks / Materials
-    Route::get('/dashboard/add-stocks', function () {
-        return view('pages.add-stocks');
-    })->name('stocks.add');
-    Route::get('/dashboard/create-stocks', function () {
-        return view('pages.create-stocks');
-    })->name('stocks.create');
-    Route::get('/dashboard/manage-stocks', function () {
-        return view('pages.manage-stocks');
-    })->name('stocks.manage');
 
     // Assignments
     Route::get('/dashboard/add-assignment', function () {
@@ -148,19 +136,42 @@ Route::middleware('auth')->group(function () {
 
 //Employee routes
 Route::middleware(['auth', 'restrict.employee'])->group(function () {
+    //add employee
+    Route::get('/dashboard/add-employee', function () {
+        return view('pages.add-employee');
+    })->name('employees.create');
     Route::post('/dashboard/add-employee', [EmployeeController::class, 'store'])->name('employees.store');
 
+    //manage employee
     Route::get('/dashboard/manage-employee', [EmployeeController::class, 'index'])->name('employees.index');
     Route::patch('/dashboard/manage-employee', [EmployeeController::class, 'update'])->name('employees.update');
     Route::delete('/dashboard/manage-employee', [EmployeeController::class, 'destroy'])->name('employees.destroy');
     Route::put('/dashboard/manage-employee', [EmployeeController::class, 'updatePassword'])->name('employees.updatePassword');
 
+    //employee bonus
+    Route::get('/dashboard/add-bonus-deduction', [EmployeeBonusAdjustmentController::class, 'index'])
+        ->name('employees.bonus');
     Route::post('/dashboard/add-bonus-deductions', [EmployeeBonusAdjustmentController::class, 'store'])
         ->name('employee_bonus_adjustments.store');
 });
 
+//Material routes
 Route::middleware(['auth', 'restrict.employee'])->group(function () {
+    //create material
+    Route::get('/dashboard/create-stocks', function () {
+        return view('pages.create-stocks');
+    })->name('stocks.create');
     Route::post('/dashboard/create-stocks', [MaterialController::class, 'store'])->name('stockscreate.create');
+
+    //add material
+    Route::get('/dashboard/add-stocks', [MaterialController::class, 'index'])->name('stocks.index');
+    Route::post('/dashboard/add-stocks', [MaterialStockController::class, 'store'])->name('stocks.store');
+
+    //manage material
+    Route::get('/dashboard/manage-stocks', [MaterialStockController::class, 'index'])->name('stocks.manage');
+    Route::patch('/dashboard/manage-stocks/update', [MaterialController::class, 'update'])->name('stocks.update');
+    Route::patch('/dashboard/manage-stocks/adjust', [MaterialStockController::class, 'adjustStock'])->name('stocks.adjust');
+    Route::delete('/dashboard/manage-stocks', [MaterialStockController::class, 'softDeleteMaterial'])->name('materials.softDelete');
 });
 
 // Load additional auth routes (login, register, reset, etc.)
