@@ -12,7 +12,7 @@ class InternalProductItem extends Model {
 
     public function product() { return $this->belongsTo(InternalProduct::class)->withTrashed(); }
 
-    public function assignment() { return $this->belongsTo(MaterialAssignment::class); }
+    public function assignment() { return $this->belongsTo(MaterialAssignment::class)->nullable(); }
 
     public function creator() { return $this->belongsTo(User::class, 'created_by')->withTrashed(); }
 }

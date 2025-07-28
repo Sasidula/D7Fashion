@@ -40,7 +40,6 @@ class EmployeeController extends Controller
     public function index()
     {
         $employees = User::where('role', 'employee')->get();
-
         return view('pages.manage-employee', compact('employees'));
     }
 

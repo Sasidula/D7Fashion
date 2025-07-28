@@ -57,8 +57,6 @@
                                 @error('quantity') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
 
-                            <input type="hidden" name="status" value="available" />
-
                             <button type="submit" class="flex items-center justify-center w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 rounded-md mb-20">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9l-6 6-6-6"/>

@@ -10,10 +10,106 @@ use Illuminate\Support\Facades\Validator;
 
 class ExternalProductItemController extends Controller
 {
+
+    //store quantity
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'external_product_id' => 'required|exists:external_products,id',
+            'quantity' => 'required|integer|min:1',
+            'created_by' => 'required|exists:users,id',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        for ($i = 0; $i < $request->quantity; $i++) {
+            ExternalProductItem::create([
+                'external_product_id' => $request->external_product_id,
+                'status' => 'available',
+                'created_by' => $request->created_by,
+            ]);
+        }
+
+        return redirect()->route('products.add.external')->with('success', 'External items created.');
+    }
+
+
+    //manage quantity
+    public function adjustStock(Request $request)
+    {
+        $validated = $request->validate([
+            'external_product_id' => 'required|exists:external_products,id',
+            'quantity' => 'required|integer|min:1',
+            'action' => 'required|in:delete,restore',
+        ]);
+
+        $targetStatus = $validated['action'] === 'delete' ? 'available' : 'sold';
+        $newStatus = $validated['action'] === 'delete' ? 'sold' : 'available';
+
+        $items = ExternalProductItem::where('external_product_id', $validated['external_product_id'])
+            ->where('status', $targetStatus)
+            ->limit($validated['quantity'])
+            ->get();
+
+        $count = $items->count();
+
+        if ($count < $validated['quantity']) {
+            return redirect()->route('external-products.manage')->withErrors([
+                'quantity' => "Only $count $targetStatus item(s) can be " . ($validated['action'] === 'delete' ? 'deleted' : 'restored') . ".",
+            ])->withInput();
+        }
+
+        foreach ($items as $item) {
+            $item->status = $newStatus;
+            $item->save();
+        }
+
+        return redirect()->route('products.manage')->with('success', "$count item(s) successfully " . ($validated['action'] === 'delete' ? 'deleted' : 'restored') . ".");
+    }
+
+
+    //delete product
+    public function softDeleteExternalProduct(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'external_product_id' => 'required|exists:external_products,id',
+        ]);
+
+        if($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $product = ExternalProduct::findOrFail($request->external_product_id);
+        $product->delete();
+
+        ExternalProductItem::where('external_product_id', $product->id)->update([
+            'status' => 'deleted'
+        ]);
+
+        return redirect()
+            ->back()
+            ->with('success', 'Product and related items marked as sold.');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function indexnotused()
     {
         $items = ExternalProductItem::with(['external_product', 'creator'])->get();
         return view('external_product_items.index', compact('items'));
@@ -29,24 +125,7 @@ class ExternalProductItemController extends Controller
         return view('external_product_items.create', compact('products', 'users'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'external_product_id' => 'required|exists:external_products,id',
-            'status' => 'required|in:available,sold',
-            'created_by' => 'required|exists:users,id',
-        ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
-
-        ExternalProductItem::create($request->only(['external_product_id', 'status', 'created_by']));
-        return redirect()->route('external_product_items.index')->with('success', 'Item created.');
-    }
 
     /**
      * Display the specified resource.

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Validator;
 
 class MaterialStockController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      */
@@ -23,15 +24,6 @@ class MaterialStockController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $materials = Material::all();
-        return view('material_stocks.create', compact('materials'));
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
@@ -39,7 +31,6 @@ class MaterialStockController extends Controller
         $validator = Validator::make($request->all(), [
             'material_id' => 'required|exists:materials,id',
             'quantity' => 'required|integer|min:1',
-            'status' => 'required|in:available,unavailable,deleted',
         ]);
 
         if ($validator->fails()) {
@@ -50,7 +41,7 @@ class MaterialStockController extends Controller
         for ($i = 0; $i < $request->quantity; $i++) {
             MaterialStock::create([
                 'material_id' => $request->material_id,
-                'status' => $request->status,
+                'status' => 'available',
             ]);
         }
 
@@ -68,8 +59,6 @@ class MaterialStockController extends Controller
             'action' => 'required|in:delete,restore',
         ]);
 
-        Log::info($validated);
-
         $materialId = $validated['material_id'];
         $quantity = $validated['quantity'];
         $action = $validated['action'];
@@ -82,11 +71,7 @@ class MaterialStockController extends Controller
             ->limit($quantity)
             ->get();
 
-        Log::info($stocks);
-
         $count = $stocks->count();
-
-        Log::info($count);
 
         if ($count < $quantity) {
             return redirect()->route('stocks.manage')->withErrors([
@@ -127,6 +112,35 @@ class MaterialStockController extends Controller
         return redirect()
             ->back()
             ->with('success', 'Material and related stock entries marked as deleted.');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        $materials = Material::all();
+        return view('material_stocks.create', compact('materials'));
     }
 
     /**

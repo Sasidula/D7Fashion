@@ -27,138 +27,120 @@
             <!-- Page content wrapper -->
             <div class="flex-1 overflow-y-auto transition-all duration-300 ease-in-out">
                 <main class="p-6">
-<div
-    x-data="{
-        formData: {
-            name: '',
-            bought_price: '',
-            sold_price: ''
-        },
-        errors: {},
-        success: false,
-        validate() {
-            const newErrors = {};
-            if (!this.formData.name.trim()) {
-                newErrors.name = 'Name is required';
-            }
-            if (!this.formData.bought_price.trim()) {
-                newErrors.bought_price = 'bought_price is required';
-            } else if (isNaN(parseFloat(this.formData.bought_price)) || parseFloat(this.formData.propertyIsEnumerable()) <= 0) {
-                newErrors.bought_price = 'Please enter a valid bought_price';
-            }
-            if (!this.formData.sold_price.trim()) {
-                newErrors.sold_price = 'sold_price is required';
-            } else if (isNaN(parseFloat(this.formData.sold_price)) || parseFloat(this.formData.propertyIsEnumerable()) <= 0) {
-                newErrors.sold_price = 'Please enter a sold_price';
-            }
-            this.errors = newErrors;
-            return Object.keys(newErrors).length === 0;
-        },
-        handleSubmit(event) {
-            event.preventDefault();
-            if (this.validate()) {
-                console.log('Form data submitted:', this.formData);
-                this.success = true;
-                setTimeout(() => {
-                    this.success = false;
-                    this.formData = {
-                        name: '',
-                        bought_price: '',
-                        sold_price: ''
-                    };
-                    this.errors = {};
-                }, 3000);
-            }
-        }
-    }"
-    class="bg-white rounded-lg shadow-md p-6"
->
-    <h1 class="text-2xl font-bold mb-6 text-[#0f2360]">Create Employee</h1>
+                    <div
+                        x-data="ExternalProductFormhandler()"
+                        class="bg-white rounded-lg shadow-md p-6"
+                    >
+                        <h1 class="text-2xl font-bold mb-6 text-[#0f2360]">External Product</h1>
 
-    <!-- Success Message -->
-    <div
-        x-show="success"
-        class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6 flex items-center"
-        x-cloak
-    >
-        <x-lucide-check class="w-5 h-5 mr-2" />
-        <span>Internal product created successfully!</span>
-    </div>
+                        <!-- Success Message -->
+                        @if(session('success'))
+                            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6 flex items-center">
+                                <x-lucide-check class="w-5 h-5 mr-2" />
+                                <span>{{ session('success') }}</span>
+                            </div>
+                        @endif
 
-    <!-- Form -->
-    <!-- Form commented out for UI testing -->
-    <!-- <form method="POST" action="{/{ ro/ute('E/xternalProduc/t.create/') }}" @submit="handleSubmit"> -->
-    <!-- @csrf -->
-    <div class="max-w-2xl mx-auto">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Full Name -->
-            <div>
-                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
-                    Full Name
-                </label>
-                <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    x-model="formData.name"
-                    class="block w-full border"
-                    :class="{ 'border-red-500': errors.name, 'border-gray-300': !errors.name }"
-                    class="rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
-                />
-                <p x-show="errors.name" class="mt-1 text-sm text-red-500" x-text="errors.name"></p>
-            </div>
+                        <!-- Form -->
+                        <form method="POST" action="{{ route('ExternalProducts.store') }}" @submit="handleSubmit">
+                            @csrf
+                            <div class="max-w-2xl mx-auto">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <!-- Name -->
+                                    <div>
+                                        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                                        <input
+                                            type="text"
+                                            id="name"
+                                            name="name"
+                                            x-model="formData.name"
+                                            :class="{ 'border-red-500': errors.name }"
+                                            class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
+                                        />
+                                        <p x-show="errors.name" class="mt-1 text-sm text-red-500" x-text="errors.name"></p>
+                                    </div>
 
-            <!-- bought_price -->
-            <div>
-                <label for="bought price" class="block text-sm font-medium text-gray-700 mb-1">
-                    Bought Price (Rs)
-                </label>
-                <input
-                    type="text"
-                    id="Price"
-                    name="Price"
-                    x-model="formData.bought_price"
-                    class="block w-full border"
-                    :class="{ 'border-red-500': errors.bought_price, 'border-gray-300': !errors.bought_price }"
-                    class="rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
-                />
-                <p x-show="errors.bought_price" class="mt-1 text-sm text-red-500" x-text="errors.bought_price"></p>
-            </div>
+                                    <!-- SKU Code -->
+                                    <div>
+                                        <label for="sku_code" class="block text-sm font-medium text-gray-700 mb-1">SKU Code</label>
+                                        <input
+                                            type="text"
+                                            id="sku_code"
+                                            name="sku_code"
+                                            x-model="formData.sku_code"
+                                            class="block w-full border border-gray-300 rounded-md p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
+                                        />
+                                    </div>
 
-            <!-- sold_price -->
-            <div>
-                <label for="sold price" class="block text-sm font-medium text-gray-700 mb-1">
-                    Sold Price (Rs)
-                </label>
-                <input
-                    type="text"
-                    id="Price"
-                    name="Price"
-                    x-model="formData.sold_price"
-                    class="block w-full border"
-                    :class="{ 'border-red-500': errors.sold_price, 'border-gray-300': !errors.sold_price }"
-                    class="rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
-                />
-                <p x-show="errors.sold_price" class="mt-1 text-sm text-red-500" x-text="errors.sold_price"></p>
-            </div>
-        </div>
+                                    <!-- Supplier -->
+                                    <div>
+                                        <label for="supplier" class="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
+                                        <input
+                                            type="text"
+                                            id="supplier"
+                                            name="supplier"
+                                            x-model="formData.supplier"
+                                            class="block w-full border border-gray-300 rounded-md p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
+                                        />
+                                    </div>
 
-        <!-- Submit Button -->
-        <div class="mt-8">
-            <button
-                type="submit"
-                @click="handleSubmit"
-                class="w-full bg-[#fd9c0a] text-white py-3 px-4 rounded-md hover:bg-[#e08c09] focus:outline-none flex items-center justify-center"
-            >
-                <x-lucide-user-plus class="w-5 h-5 mr-2" />
-                Add  External Product
-            </button>
-        </div>
-    </div>
-    <!-- </form> -->
-</div>
+                                    <!-- Description -->
+                                    <div class="md:col-span-2">
+                                        <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                        <textarea
+                                            id="description"
+                                            name="description"
+                                            x-model="formData.description"
+                                            class="w-full border border-gray-300 rounded-md p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
+                                            rows="3"
+                                        ></textarea>
+                                    </div>
+
+                                    <!-- Bought Price -->
+                                    <div>
+                                        <label for="bought_price" class="block text-sm font-medium text-gray-700 mb-1">Bought Price (Rs)</label>
+                                        <input
+                                            type="text"
+                                            id="bought_price"
+                                            name="bought_price"
+                                            x-model="formData.bought_price"
+                                            :class="{ 'border-red-500': errors.bought_price }"
+                                            class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
+                                        />
+                                        <p x-show="errors.bought_price" class="mt-1 text-sm text-red-500" x-text="errors.bought_price"></p>
+                                    </div>
+
+                                    <!-- Sold Price -->
+                                    <div>
+                                        <label for="sold_price" class="block text-sm font-medium text-gray-700 mb-1">Sold Price (Rs)</label>
+                                        <input
+                                            type="text"
+                                            id="sold_price"
+                                            name="sold_price"
+                                            x-model="formData.sold_price"
+                                            :class="{ 'border-red-500': errors.sold_price }"
+                                            class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
+                                        />
+                                        <p x-show="errors.sold_price" class="mt-1 text-sm text-red-500" x-text="errors.sold_price"></p>
+                                    </div>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <div class="mt-8">
+                                    <button
+                                        type="submit"
+                                        class="w-full bg-[#fd9c0a] text-white py-3 px-4 rounded-md hover:bg-[#e08c09] focus:outline-none flex items-center justify-center"
+                                    >
+                                        <x-lucide-user-plus class="w-5 h-5 mr-2" />
+                                        Add External Product
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </main>
             </div>
+
         </div>
 
         <!-- Popup -->
@@ -166,6 +148,39 @@
 
     </div>
     <script>
+        function ExternalProductFormhandler() {
+            return {
+                formData: {
+                    name: '',
+                    sku_code: '',
+                    description: '',
+                    supplier: '',
+                    bought_price: '',
+                    sold_price: ''
+                },
+                errors: {},
+                success: false,
+                validate() {
+                    const newErrors = {};
+                    if (!this.formData.name.trim()) {
+                        newErrors.name = 'Name is required';
+                    }
+                    if (!this.formData.bought_price.trim() || isNaN(this.formData.bought_price) || parseFloat(this.formData.bought_price) <= 0) {
+                        newErrors.bought_price = 'Please enter a valid bought price';
+                    }
+                    if (!this.formData.sold_price.trim() || isNaN(this.formData.sold_price) || parseFloat(this.formData.sold_price) <= 0) {
+                        newErrors.sold_price = 'Please enter a valid sold price';
+                    }
+                    this.errors = newErrors;
+                    return Object.keys(newErrors).length === 0;
+                },
+                handleSubmit(event) {
+                    if (!this.validate()) {
+                        event.preventDefault();
+                    }
+                }
+            };
+        }
         window.layoutHandler = () => ({
             sidebarOpen: JSON.parse(localStorage.getItem('sidebarOpen')) || false,
 

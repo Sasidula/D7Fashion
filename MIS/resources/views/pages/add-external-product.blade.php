@@ -27,31 +27,46 @@
             <!-- Page content wrapper -->
             <div class="flex-1 overflow-y-auto transition-all duration-300 ease-in-out">
                 <main class="p-6">
-<div class="bg-white rounded-lg shadow-md p-20 flex flex-col  items-center ">
+                    <!-- Success Message -->
+                    @if(session('success'))
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6 flex items-center">
+                            <x-lucide-check class="w-5 h-5 mr-2" />
+                            <span>{{ session('success') }}</span>
+                        </div>
+                    @endif
+                    <div class="bg-white rounded-lg shadow-md p-20 flex flex-col  items-center ">
+                        <h2 class="text-2xl font-bold mb-6 text-[#2a3f7d]" >Add External Product Stock - in</h2>
 
+                        <form method="POST" action="{{ route('ExternalProducts.add') }}">
+                            @method('POST')
+                            @csrf
 
-    <h2 class="text-2xl font-bold mb-6 text-[#2a3f7d]" >External Product Stock - in</h2>
+                            <div class="w-80 flex flex-col pb-10">
+                                <label class="block text-gray-700 mb-1">Select Material</label>
+                                <select name="internal_product_id" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                    <option value="" disabled selected>-- Select a product --</option>
+                                    @foreach($products as $product)
+                                        <option value="{{ $product->id }}">{{ $product->name }} - Rs. {{ $product-> bought_price }} - Rs. {{ $product-> sold_price }}</option>
+                                    @endforeach
+                                </select>
+                                @error('material_id') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
 
-    <form>
-        <div class="w-80 flex flex-col pb-10">
-            <label class="block text-gray-700 mb-1" for="fullName">Select Product</label>
-            <select name="" id=" "  class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
-        </div>
+                            <div class="w-80 flex flex-col pb-10">
+                                <label class="block text-gray-700 mb-1">Product Quantity</label>
+                                <input name="quantity" type="number" min="1" value="1" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                                @error('quantity') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
 
-        <div class="w-80 flex flex-col pb-10">
-            <label class="block text-gray-700 mb-1" for="fullName">Product Contity</label>
-            <input id="fullName" type="text" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
+                            <button type="submit" class="flex items-center justify-center w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 rounded-md mb-20">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9l-6 6-6-6"/>
+                                </svg>
+                                Save
+                            </button>
+                        </form>
 
-        <button type="submit" class="flex items-center justify-center w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 rounded-md mb-20">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9l-6 6-6-6"/>
-            </svg>
-            Save
-        </button>
-    </form>
-
-</div>
+                    </div>
                 </main>
             </div>
         </div>

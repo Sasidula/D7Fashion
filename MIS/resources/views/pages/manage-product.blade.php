@@ -27,158 +27,121 @@
             <!-- Page content wrapper -->
             <div class="flex-1 overflow-y-auto transition-all duration-300 ease-in-out">
                 <main class="p-6">
-<div
-    x-data="productComponent()"
-    x-init="initPopup()"
-    class="bg-white rounded-lg shadow-md p-6"
->
-    <h1 class="text-2xl font-bold mb-6 text-[#0f2360]">View Products</h1>
-    <div>
-        <!-- Items Section -->
-        <div>
-            <!-- Tabs -->
-            <div class="mb-4">
-                <div class="flex border-b">
-                    <button
-                        @click="setActiveTab('Internal')"
-                        class="py-2 px-4"
-                        :class="{ 'border-b-2 border-[#fd9c0a] text-[#0f2360] font-medium': activeTab === 'Internal', 'text-gray-500': activeTab !== 'Internal' }" :class="{ 'border-b-2 border-[#fd9c0a] text-[#0f2360] font-medium': activeTab === 'Internal', 'text-gray-500': activeTab !== 'Internal' }"
+                    <div
+                        x-data="{
+                            internalProducts: {{ Js::from($internalProducts) }},
+                            externalProducts: {{ Js::from($externalProducts) }},
+                            selectedItem: {!! session('updatedItem') ? json_encode(session('updatedItem')) : 'null' !!},
+                            activeTab: 'Internal',
+                            setActiveTab(tab) {
+                                this.activeTab = tab;
+                                this.selectedItem = null;
+                            }
+                        }"
+                        x-init="initPopup()"
+                        class="bg-white rounded-lg shadow-md p-6"
                     >
-                        Internal
-                    </button>
-                    <button
-                        @click="setActiveTab('External')"
-                        class="py-2 px-4"
-                        :class="{ 'border-b-2 border-[#fd9c0a] text-[#0f2360] font-medium': activeTab === 'External', 'text-gray-500': activeTab !== 'External' }"
-                    >
-                        External
-                    </button>
-                </div>
-            </div>
+                        <h1 class="text-2xl font-bold mb-6 text-[#0f2360]">View Products</h1>
 
-            <!-- Items Table -->
-            <div class="overflow-x-auto border rounded-lg">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                    <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Name
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Quantity
-                        </th>
-                        <th scope="col" x-show="activeTab === 'External'" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Value
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Price
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Action
-                        </th>
-                    </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                    <template x-for="item in activeTab === 'Internal' ? InternalItems : ExternalItems" :key="item.id">
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap" x-text="item.name"></td>
-                            <td class="px-6 py-4 whitespace-nowrap" x-text="item.quantity"></td>
-                            <td class="px-6 py-4 whitespace-nowrap" x-show="activeTab === 'External'" x-text="'$' + item.value.toFixed(2)"></td>
-                            <td class="px-6 py-4 whitespace-nowrap" x-text="'$' + item.price.toFixed(2)"></td>
-                            <td class="px-6 py-4 whitespace-nowrap pl-10">
-                                <button
-                                    @click="$dispatch('popup-open', {
-                                title: activeTab === 'Internal' ? 'Edit Internal Product' : 'Edit External Product',
-                                view: activeTab === 'Internal' ? 'internal-product-edit' : 'external-product-edit',
-                                data: item
-                            })"
-                                    class="text-[#0f2360] hover:text-[#fd9c0a]"
-                                >
-                                    <x-lucide-edit class="w-5 h-5" />
-                                </button>
-                            </td>
-                        </tr>
-                    </template>
-                    </tbody>
-                </table>
-            </div>
+                        <!-- Tabs -->
+                        <div class="mb-4 border-b flex">
+                            <button
+                                @click="setActiveTab('Internal')"
+                                class="py-2 px-4"
+                                :class="{ 'border-b-2 border-[#fd9c0a] text-[#0f2360] font-medium': activeTab === 'Internal', 'text-gray-500': activeTab !== 'Internal' }"
+                            >
+                                Internal
+                            </button>
+                            <button
+                                @click="setActiveTab('External')"
+                                class="py-2 px-4"
+                                :class="{ 'border-b-2 border-[#fd9c0a] text-[#0f2360] font-medium': activeTab === 'External', 'text-gray-500': activeTab !== 'External' }"
+                            >
+                                External
+                            </button>
+                        </div>
 
-        </div>
-    </div>
-</div>
-
+                        <!-- Table -->
+                        <div class="overflow-x-auto border rounded-lg">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                                    <th x-show="activeTab === 'External'" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bought Price</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sold/Unit Price</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                <template x-for="item in activeTab === 'Internal' ? internalProducts : externalProducts" :key="item.id">
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap" x-text="item.name"></td>
+                                        <td class="px-6 py-4 whitespace-nowrap" x-text="item.available_quantity"></td>
+                                        <td class="px-6 py-4 whitespace-nowrap" x-show="activeTab === 'External'" x-text="'Rs. ' + parseFloat(item.bought_price).toFixed(2)"></td>
+                                        <td class="px-6 py-4 whitespace-nowrap" x-text="'Rs. ' + (activeTab === 'Internal' ? parseFloat(item.price).toFixed(2) : parseFloat(item.sold_price).toFixed(2))"></td>
+                                        <td class="px-6 py-4 whitespace-nowrap pl-10">
+                                            <button
+                                                @click="selectedItem = item; $dispatch('open-modal', activeTab === 'Internal' ? 'Edit-Internal-Product' : 'Edit-External-Product')"
+                                                class="text-[#0f2360] hover:text-[#fd9c0a]"
+                                            >
+                                                <x-lucide-edit class="w-5 h-5" />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </main>
-            </div>
-        </div>
 
-        <!-- Popup -->
+                <!-- Internal Product Modal -->
+                <x-modal name="Edit-Internal-Product" focusable>
+                    <div class="bg-white rounded-lg shadow-lg w-full max-w-3xl mx-4 overflow-hidden">
+                        <div class="max-h-[90vh] overflow-y-auto rounded-lg scrollbar-thin">
+                            <div class="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10">
+                                <button x-on:click="$dispatch('close')" class="text-gray-600 hover:text-gray-900">
+                                    <x-lucide-arrow-left class="w-6 h-6" />
+                                </button>
+                                <h2 class="text-lg font-semibold text-gray-800">Edit Internal Product</h2>
+                                <div class="w-6"></div>
+                            </div>
+                            <div class="p-6">
+                                <!-- Add your internal product edit form here -->
+                            </div>
+                        </div>
+                    </div>
+                </x-modal>
+
+                <!-- External Product Modal -->
+                <x-modal name="Edit-External-Product" focusable>
+                    <div class="bg-white rounded-lg shadow-lg w-full max-w-3xl mx-4 overflow-hidden">
+                        <div class="max-h-[90vh] overflow-y-auto rounded-lg scrollbar-thin">
+                            <div class="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10">
+                                <button x-on:click="$dispatch('close')" class="text-gray-600 hover:text-gray-900">
+                                    <x-lucide-arrow-left class="w-6 h-6" />
+                                </button>
+                                <h2 class="text-lg font-semibold text-gray-800">Edit External Product</h2>
+                                <div class="w-6"></div>
+                            </div>
+                            <div class="p-6">
+                                <!-- Add your external product edit form here -->
+                            </div>
+                        </div>
+                    </div>
+                </x-modal>
+            </div>
+
+
+            <!-- Popup -->
         @include('components.popup')
 
     </div>
 
     <script>
-        function productComponent() {
-            return {
-                popup: {
-                    open: false,
-                    title: '',
-                    content: '',
-                    data: null,
-                    requestId: 0,
-                },
-                activeTab: 'Internal',
-                InternalItems: [
-                    { id: 1, name: 'Gucci', quantity: 10, price: 10.00 },
-                    { id: 2, name: 'Louis Vuitton', quantity: 5, price: 20.00 },
-                    { id: 3, name: 'Chanel', quantity: 8, price: 15.00 },
-                    { id: 4, name: 'Dior', quantity: 3, price: 25.00 },
-                    { id: 5, name: 'Prada', quantity: 6, price: 30.00 }
-                ],
-                ExternalItems: [
-                    { id: 1, name: 'Armani', quantity: 10, value: 10.00, price: 10.00 },
-                    { id: 2, name: 'Gabbana', quantity: 5, value: 20.00, price: 20.00 },
-                    { id: 3, name: 'Dolce', quantity: 8, value: 15.00, price: 15.00 },
-                    { id: 4, name: 'Gucci', quantity: 3, value: 25.00, price: 25.00 },
-                    { id: 5, name: 'Louis Vuitton', quantity: 6, value: 30.00, price: 30.00 }
-
-                ],
-                setActiveTab(tab) {
-                    this.activeTab = tab;
-                    this.selectedItem = null;
-                    this.quantity = 1;
-                },
-                initPopup() {
-                    window.addEventListener('popup-open', (e) => {
-                        const { title, view, data } = e.detail;
-                        this.popup.data = data;
-                        this.loadPopup(title, view);
-                    });
-                },
-                async loadPopup(title, bladeRoute) {
-                    this.popup.requestId++;
-                    const currentId = this.popup.requestId;
-
-                    this.popup.title = title;
-                    this.popup.content = 'Loading...';
-
-                    try {
-                        const response = await fetch(`/popup/${bladeRoute}`);
-                        const html = await response.text();
-
-                        if (currentId !== this.popup.requestId) return;
-
-                        this.popup.content =
-                            `<script>window.popupData = ${JSON.stringify(this.popup.data)}<\/script>` + html;
-
-                        this.popup.open = true;
-                    } catch (e) {
-                        if (currentId !== this.popup.requestId) return;
-
-                        this.popup.content = '<div class="text-red-500">Failed to load content.</div>';
-                        this.popup.open = true;
-                    }
-                },
-            };
+        function manageProductComponent() {
+            return undefined;
         }
         window.layoutHandler = () => ({
             sidebarOpen: JSON.parse(localStorage.getItem('sidebarOpen')) || false,

@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('internal_product_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('internal_product_id')->constrained()->onDelete('cascade');
-            $table->foreignId('assignment_id')->constrained('material_assignments')->onDelete('cascade');
-            $table->enum('use', ['approved', 'rejected']);
-            $table->enum('status', ['available', 'sold'])->default('available');
+            $table->foreignId('assignment_id')->constrained('material_assignments')->onDelete('cascade')->nullable();
+            $table->enum('use', [ 'reviewing', 'approved', 'rejected']);
+            $table->enum('status', ['available', 'sold', 'deleted'])->default('available');
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });

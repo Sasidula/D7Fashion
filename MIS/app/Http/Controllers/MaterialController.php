@@ -17,13 +17,6 @@ class MaterialController extends Controller
         return view('pages.add-stocks', compact('materials'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('pages.create-stocks');
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -44,22 +37,6 @@ class MaterialController extends Controller
         Material::create($request->only(['name', 'supplier', 'description', 'price']));
         return redirect()->route('pages.create-stocks')->with('success', 'Material created.');
 
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Material $material)
-    {
-        return view('pages.manage-stocks', compact('material'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Material $material)
-    {
-        return view('pages.manage-stocks', compact('material'));
     }
 
     /**
@@ -93,7 +70,59 @@ class MaterialController extends Controller
         return redirect()
             ->route('stocks.manage')
             ->with('status', 'Material updated.')
-            ->with('updatedMaterial', $material->only(['id', 'name', 'supplier', 'description', 'price']));
+            ->with('updatedMaterial', $material);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        return view('pages.create-stocks');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Material $material)
+    {
+        return view('pages.manage-stocks', compact('material'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Material $material)
+    {
+        return view('pages.manage-stocks', compact('material'));
     }
 
 

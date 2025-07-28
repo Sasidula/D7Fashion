@@ -2,14 +2,15 @@
 
 use App\Http\Controllers\EmployeeBonusAdjustmentController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\ExternalProductController;
+use App\Http\Controllers\ExternalProductItemController;
 use App\Http\Controllers\InternalProductController;
+use App\Http\Controllers\InternalProductItemController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\MaterialStockController;
-use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\PageController;
 
 // Redirect root to /login (custom login view)
 Route::get('/', function () {
@@ -44,12 +45,6 @@ Route::get('/dashboard/{page?}', function ($page = 'home') {
 */
 
 // =================== NON-MODULAR DASHBOARD ROUTES =================== //
-
-Route::get('/dashboard', function () {
-    return redirect('/dashboard/home');
-});
-
-
 Route::middleware(['auth', 'restrict.employee'])->group(function () {
 
     //to dashboard
@@ -91,28 +86,6 @@ Route::middleware(['auth', 'restrict.employee'])->group(function () {
     Route::get('/dashboard/settings', function () {
         return view('pages.settings');
     })->name('settings');
-
-    // Internal Product
-    Route::get('/dashboard/add-internal-product', function () {
-        return view('pages.add-internal-product');
-    })->name('products.add.internal');
-    Route::get('/dashboard/create-internal-product', function () {
-        return view('pages.create-internal-product');
-    })->name('products.create.internal');
-
-    // External Product
-    Route::get('/dashboard/add-external-product', function () {
-        return view('pages.add-external-product');
-    })->name('products.add.external');
-    Route::get('/dashboard/create-external-product', function () {
-        return view('pages.create-external-product');
-    })->name('products.create.external');
-
-    // Manage Products
-    Route::get('/dashboard/manage-product', function () {
-        return view('pages.manage-product');
-    })->name('products.manage');
-
 
     // Assignments
     Route::get('/dashboard/add-assignment', function () {
@@ -172,6 +145,48 @@ Route::middleware(['auth', 'restrict.employee'])->group(function () {
     Route::patch('/dashboard/manage-stocks/update', [MaterialController::class, 'update'])->name('stocks.update');
     Route::patch('/dashboard/manage-stocks/adjust', [MaterialStockController::class, 'adjustStock'])->name('stocks.adjust');
     Route::delete('/dashboard/manage-stocks', [MaterialStockController::class, 'softDeleteMaterial'])->name('materials.softDelete');
+});
+
+//External Product routes
+Route::middleware(['auth', 'restrict.employee'])->group(function () {
+    //create external product
+    Route::get('/dashboard/create-external-product', function () {
+        return view('pages.create-external-product');
+    })->name('products.create.external');
+    Route::post('/dashboard/create-external-product', [ExternalProductController::class, 'store'])->name('ExternalProducts.store');
+
+    //add external product
+    Route::get('/dashboard/add-external-product', [ExternalProductController::class, 'index'])->name('products.add.external');
+    Route::post('/dashboard/add-external-product', [ExternalProductItemController::class, 'store'])->name('ExternalProducts.add');
+});
+
+//Internal Product routes
+Route::middleware(['auth', 'restrict.employee'])->group(function () {
+    //create internal product
+    Route::get('/dashboard/create-internal-product', function () {
+        return view('pages.create-internal-product');
+    })->name('products.create.internal');
+    Route::post('/dashboard/create-internal-product', [InternalProductController::class, 'store'])->name('InternalProducts.store');
+
+    //add internal product
+    Route::get('/dashboard/add-internal-product', [InternalProductController::class, 'index'])->name('products.add.internal');
+    Route::post('/dashboard/add-internal-product', [InternalProductItemController::class, 'store'])->name('InternalProducts.add');
+});
+
+//manage products routes
+Route::middleware(['auth', 'restrict.employee'])->group(function () {
+    //get products
+    Route::get('/dashboard/manage-product', [InternalProductController::class, 'allProducts'])->name('products.manage');
+
+    //update Internal products
+    Route::patch('/dashboard/manage-product/internal/update', [InternalProductController::class, 'update'])->name('internalProducts.update');
+    Route::patch('/dashboard/manage-product/internal/adjust', [InternalProductItemController::class, 'adjustStock'])->name('internalProducts.adjust');
+    Route::delete('/dashboard/manage-product/internal', [InternalProductItemController::class, 'softDeleteMaterial'])->name('internalProducts.softDelete');
+
+    //update External products
+    Route::patch('/dashboard/manage-product/external/update', [ExternalProductController::class, 'update'])->name('externalProducts.update');
+    Route::patch('/dashboard/manage-product/external/adjust', [ExternalProductItemController::class, 'adjustStock'])->name('externalProducts.adjust');
+    Route::delete('/dashboard/manage-product/external', [ExternalProductItemController::class, 'softDeleteMaterial'])->name('externalProducts.softDelete');
 });
 
 // Load additional auth routes (login, register, reset, etc.)

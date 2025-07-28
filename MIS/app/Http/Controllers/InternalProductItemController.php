@@ -11,10 +11,126 @@ use Illuminate\Support\Facades\Validator;
 
 class InternalProductItemController extends Controller
 {
+
+    //add internal product
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'internal_product_id' => 'required|exists:internal_products,id',
+            'quantity' => 'required|integer|min:1',
+            'created_by' => 'required|exists:users,id',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        for ($i = 0; $i < $request->quantity; $i++) {
+            InternalProductItem::create([
+                'internal_product_id' => $request->internal_product_id,
+                'assignment_id' => null,
+                'use' => 'approved',
+                'status' => 'available',
+                'created_by' => $request->created_by,
+            ]);
+        }
+
+        return redirect()->route('products.add.internal')->with('success', 'Internal Product Item(s) created.');
+    }
+
+
+    //manage internal product quantity
+    public function adjustStock(Request $request)
+    {
+        $validated = $request->validate([
+            'internal_product_id' => 'required|exists:internal_products,id',
+            'quantity' => 'required|integer|min:1',
+            'action' => 'required|in:delete,restore',
+        ]);
+
+        $InternalProductId = $validated['internal_product_id'];
+        $quantity = $validated['quantity'];
+        $action = $validated['action'];
+
+        $targetStatus = $action === 'delete' ? 'available' : 'sold';
+        $newStatus    = $action === 'delete' ? 'sold' : 'available';
+
+        $items = InternalProductItem::where('internal_product_id', $InternalProductId)
+            ->where('status', $targetStatus)
+            ->limit($quantity)
+            ->get();
+
+        $count = $items->count();
+
+        if ($count < $quantity) {
+            return redirect()->route('internal-products.items.manage')->withErrors([
+                'quantity' => "Only $count $targetStatus item(s) can be " . ($action === 'delete' ? 'deleted' : 'restored') . ".",
+            ])->withInput();
+        }
+
+        foreach ($items as $item) {
+            $item->status = $newStatus;
+            $item->save();
+        }
+
+        return redirect()->route('products.manage')
+            ->with('success', "$quantity item(s) successfully " . ($action === 'delete' ? 'deleted' : 'restored') . ".");
+    }
+
+
+    //soft delete internal product
+    public function softDelete(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'internal_product_id' => 'required|exists:internal_products,id',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $product = InternalProduct::findOrFail($request->internal_product_id);
+        $product->delete();
+
+        InternalProductItem::where('internal_product_id', $product->id)
+            ->update(['status' => 'deleted']);
+
+        return redirect()->back()->with('success', 'Product and related items marked as deleted.');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function indexnotused()
     {
         $items = InternalProductItem::with(['product', 'assignment', 'creator'])->get();
         return view('internal_product_items.index', compact('items'));
@@ -34,7 +150,7 @@ class InternalProductItemController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function storenotused(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'internal_product_id' => 'required|exists:internal_products,id',
