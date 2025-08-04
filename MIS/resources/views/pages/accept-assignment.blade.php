@@ -23,160 +23,132 @@
                 class="fixed inset-0 top-16 bg-black bg-opacity-40 z-20 md:hidden"
                 @click="sidebarOpen = false"
             ></div>
-
-            <!-- Page content wrapper -->
             <div class="flex-1 overflow-y-auto transition-all duration-300 ease-in-out">
                 <main class="p-6">
-<div
-    x-data="{
-        formData: { employeeId: '', productAssignments: {} },
-        errors: {},
-        success: false,
-        employees: [
-            { id: 1, name: 'John Doe', assignedMaterial: { materialId: 1, quantity: 10 } },
-            { id: 2, name: 'Jane Smith', assignedMaterial: { materialId: 2, quantity: 15 } },
-            { id: 3, name: 'Robert Johnson', assignedMaterial: { materialId: 3, quantity: 20 } },
-            { id: 4, name: 'Emily Davis', assignedMaterial: { materialId: 4, quantity: 8 } },
-            { id: 5, name: 'Michael Wilson', assignedMaterial: { materialId: 5, quantity: 12 } }
-        ],
-        products: [
-            { id: 1, name: 'T-Shirt' },
-            { id: 2, name: 'Jeans' },
-            { id: 3, name: 'Jacket' },
-            { id: 4, name: 'Dress' },
-            { id: 5, name: 'Socks' }
-        ],
-        materials: [
-            { id: 1, name: 'Cotton Fabric' },
-            { id: 2, name: 'Silk Fabric' },
-            { id: 3, name: 'Buttons' },
-            { id: 4, name: 'Zippers' },
-            { id: 5, name: 'Thread Spools' }
-        ],
-        getAssignedQuantity() {
-            const employee = this.employees.find(e => e.id == this.formData.employeeId);
-            return employee ? employee.assignedMaterial.quantity : 0;
-        },
-        getAssignedMaterialName() {
-            const employee = this.employees.find(e => e.id == this.formData.employeeId);
-            if (!employee) return '';
-            const material = this.materials.find(m => m.id == employee.assignedMaterial.materialId);
-            return material ? material.name : '';
-        },
-        validate() {
-            const newErrors = {};
-            if (!this.formData.employeeId) {
-                newErrors.employeeId = 'Employee is required';
-            } else {
-                const totalAssigned = Object.values(this.formData.productAssignments)
-                .reduce((sum, qty) => sum + (parseInt(qty) || 0), 0);
-                if (totalAssigned !== this.getAssignedQuantity()) {
-                    newErrors.productAssignments = `Total assigned quantity must equal ${this.getAssignedQuantity()}`;
-                }
-            }
-            this.errors = newErrors;
-            return Object.keys(newErrors).length === 0;
-        },
-        handleSubmit(event) {
-            event.preventDefault();
-            if (this.validate()) {
-                console.log('Assignment completed:', this.formData);
-                this.success = true;
-                setTimeout(() => {
-                    this.success = false;
-                    this.formData = { employeeId: '', productAssignments: {} };
-                    this.errors = {};
-                }, 3000);
-            }
-        }
-    }"
-    class="bg-white rounded-lg shadow-md p-6"
->
-<h1 class="text-2xl font-bold mb-6 text-[#0f2360]">Complete Assignment</h1>
+                    {{-- Flash Messages --}}
+                    @if (session('status'))
+                        <div class="mb-4 text-green-600 bg-green-100 border border-green-300 rounded p-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 10000)">
+                            {{ session('status') }}
+                        </div>
+                    @endif
 
-<!-- Success Message -->
-<div
-    x-show="success"
-    class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6 flex items-center"
-    x-cloak
->
-    <x-lucide-check class="w-5 h-5 mr-2" />
-    <span>Assignment completed successfully!</span>
-</div>
+                    @if ($errors->any())
+                        <div class="mb-4 text-red-600 bg-red-100 border border-red-300 rounded p-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 10000)">
+                            <ul class="list-disc list-inside">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
 
-<!-- Form -->
-<!-- <form method="POST" action="{/{ r/oute('assi/gnments.comple/te'/) }}" @submit="handleSubmit"> -->
-<!-- @csrf -->
-<div class="max-w-2xl mx-auto">
-    <div class="grid grid-cols-1 gap-6">
-        <!-- Employee -->
-        <div>
-            <label for="employeeId" class="block text-sm font-medium text-gray-700 mb-1">
-                Select Employee
-            </label>
-            <select
-                id="employeeId"
-                name="employeeId"
-                x-model="formData.employeeId"
-                class="block w-full border"
-                :class="{ 'border-red-500': errors.employeeId, 'border-gray-300': !errors.employeeId }"
-                class="rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
-            >
-                <option value="">-- Select an employee --</option>
-                <template x-for="employee in employees" :key="employee.id">
-                    <option :value="employee.id" x-text="employee.name"></option>
-                </template>
-            </select>
-            <p x-show="errors.employeeId" class="mt-1 text-sm text-red-500" x-text="errors.employeeId"></p>
-        </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h1 class="text-2xl font-bold mb-6 text-[#0f2360]">Complete Assignment</h1>
 
-        <!-- Assigned Material Info -->
-        <div x-show="formData.employeeId" class="bg-gray-50 p-4 rounded-md">
-            <p class="text-sm font-medium text-gray-700">
-                Assigned Material: <span x-text="getAssignedMaterialName()"></span>
-            </p>
-            <p class="text-sm font-medium text-gray-700">
-                Assigned Quantity: <span x-text="getAssignedQuantity()"></span>
-            </p>
-            <p class="text-sm text-gray-500 mt-2">Distribute the assigned quantity across products below:</p>
-        </div>
+                        {{-- Employee Selection --}}
+                        <form method="POST" action="{{ route('assignments.get') }}" class="mb-6">
+                            @csrf
+                            <h2 class="text-xl font-bold mb-2">Select Employee to Manage Assignments</h2>
+                            <div class="flex flex-col sm:flex-row gap-4">
+                                <select name="user_id" required class="rounded-md border border-gray-300 p-2 focus:ring-[#0f2360] focus:border-[#0f2360]">
+                                    <option value="">-- Select Employee --</option>
+                                    @foreach ($employees as $employee)
+                                        <option value="{{ $employee->id }}">{{ $employee->name }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="submit" class="w-16 sm:w-auto bg-[#fd9c0a] text-white py-2 px-4 rounded-md hover:bg-[#e08c09] focus:outline-none">
+                                    View Assignments
+                                </button>
+                            </div>
+                        </form>
 
-        <!-- Product Assignments -->
-        <div x-show="formData.employeeId">
-            <template x-for="product in products" :key="product.id">
-                <div class="mb-4">
-                    <label :for="'product-' + product.id" class="block text-sm font-medium text-gray-700 mb-1">
-                        <span x-text="product.name"></span> Quantity
-                    </label>
-                    <input
-                        :id="'product-' + product.id"
-                        type="number"
-                        min="0"
-                        x-model.number="formData.productAssignments[product.id]"
-                        class="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
-                    />
-                </div>
-            </template>
-            <p x-show="errors.productAssignments" class="mt-1 text-sm text-red-500" x-text="errors.productAssignments"></p>
-        </div>
-    </div>
+                        @if (isset($user))
+                            <h2 class="text-xl font-semibold mb-4 text-gray-800">Assignments for {{ $user->name }}</h2>
 
-    <!-- Submit Button -->
-    <div class="mt-8" x-show="formData.employeeId">
-        <button
-            type="submit"
-            @click="handleSubmit"
-            class="w-full bg-[#fd9c0a] text-white py-3 px-4 rounded-md hover:bg-[#e08c09] focus:outline-none flex items-center justify-center"
-        >
-            <x-lucide-check class="w-5 h-5 mr-2" />
-            Complete Assignment
-        </button>
-    </div>
-</div>
-<!-- </form> -->
-</div>
+                            @if ($assignments->isEmpty())
+                                <p class="text-gray-600">No assignments found for {{ $user->name }}.</p>
+                            @else
+                                @foreach ($assignments as $assignment)
+                                    <div class="border rounded-lg p-4 mb-6 bg-gray-50 shadow-sm">
+                                        <h3 class="text-xl font-semibold mb-3">
+                                            <span class="text-sm text-gray-600">Material:</span> {{ $assignment->name }}
+                                            <span class="text-sm text-gray-600">Qty of</span> {{ $assignment->assignment_count }}
+                                            <span class="text-sm text-gray-600">Assigned</span>
+                                        </h3>
+
+                                        <div class="flex flex-col sm:flex-row gap-4 items-center">
+                                            {{-- Complete Form --}}
+                                            <form method="POST" action="{{ route('assignments.complete') }}" class="flex flex-col sm:flex-row gap-4 items-center">
+                                                @csrf
+                                                <input type="hidden" name="material_stock_id" value="{{ $assignment->material_id }}">
+                                                <input type="hidden" name="user_id" value="{{ $user->id }}">
+
+                                                <select name="internal_product_id" required class="w-full sm:w-64 border rounded p-2">
+                                                    <option value="">-- Select Product --</option>
+                                                    @foreach ($availableProducts as $product)
+                                                        @if ($product->available_count > 0)
+                                                            <option value="{{ $product->id }}">
+                                                                {{ $product->name }} ({{ $product->available_count }} available)
+                                                            </option>
+                                                        @endif
+                                                    @endforeach
+                                                </select>
+
+                                                <input type="number" name="quantity" max="{{ $assignment->assignment_count }}" min="1" required class="border rounded p-2 w-24" placeholder="Qty">
+
+                                                <button type="submit" class="bg-[#fd9c0a] hover:bg-[#e08c09] text-white py-2 px-4 rounded-md transition duration-200 focus:outline-none">
+                                                    Complete
+                                                </button>
+                                            </form>
+
+                                            {{-- Edit Button --}}
+                                            <button @click="selectedItem = {{ $assignment->material_id }}; $dispatch('open-modal', 'edit-modal')"
+                                                    class="bg-[#fd9c0a] hover:bg-[#e08c09] text-white py-2 px-4 rounded-md transition duration-200 focus:outline-none">
+                                                Edit
+                                            </button>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @endif
+                        @endif
+                    </div>
                 </main>
             </div>
+
+            {{-- Edit Modal --}}
+            <x-modal name="edit-modal"  :scrollable="true" focusable>
+                <div class="bg-white rounded-lg shadow-lg w-full max-w-3xl mx-4 overflow-hidden">
+                    <div class="max-h-[90vh] overflow-y-auto rounded-lg scrollbar-thin">
+                        <form method="POST" action="{{ route('assignments.update') }}" class="mt-6 space-y-6">
+                            @csrf
+                            @method('PATCH')
+
+                            <input type="hidden" name="material_id" value="selectedItem">
+                            <input type="hidden" name="user_id" value="userId">
+
+                            <h2 class="text-lg font-semibold mb-2 text-gray-800">Edit Number of Assignments for Assigned for <span x-text="name"></span></h2>
+
+                            <div>
+                                <label for="quantity" class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                                <input type="number" name="quantity" min="1" required class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+
+                            <div>
+                                <label for="action" class="block text-sm font-medium text-gray-700 mb-1">Action</label>
+                                <select name="action" required class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="delete">Delete</option>
+                                    <option value="restore">Restore</option>
+                                </select>
+                            </div>
+
+                            <div class="flex justify-end gap-3 mt-4">
+                                <button type="submit" class="bg-[#fd9c0a] hover:bg-orange-600 text-white px-4 py-2 rounded-md">Submit</button>
+                                <button type="button" @click="$dispatch('close')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </x-modal>
         </div>
 
         <!-- Popup -->
@@ -185,6 +157,10 @@
     </div>
     <script>
         window.layoutHandler = () => ({
+            selectedItem: null,
+            userId: null,
+            name: null,
+
             sidebarOpen: JSON.parse(localStorage.getItem('sidebarOpen')) || false,
 
             popup: {

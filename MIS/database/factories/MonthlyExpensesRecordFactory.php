@@ -15,6 +15,7 @@ class MonthlyExpensesRecordFactory extends Factory
             'expense_id' => MonthlyExpensesList::inRandomOrder()->first()->id,
             'amount' => $this->faker->numberBetween(200, 3000),
             'type' => $this->faker->randomElement(['income', 'expense']),
+            'description' => $this->faker->sentence(),
         ];
     }
 }

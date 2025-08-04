@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('expense_id')->constrained('monthly_expenses_list')->onDelete('cascade');
             $table->decimal('amount', 10, 2);
             $table->enum('type', ['income', 'expense']);
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }

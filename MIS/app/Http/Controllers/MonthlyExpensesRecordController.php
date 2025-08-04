@@ -15,16 +15,19 @@ class MonthlyExpensesRecordController extends Controller
     public function index()
     {
         $records = MonthlyExpensesRecord::with('expense')->get();
-        return view('monthly_expenses_records.index', compact('records'));
+        $options = MonthlyExpensesList::all();
+        return view('pages.accounts', compact('records', 'options'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function indextest()
     {
-        $expenses = MonthlyExpensesList::all();
-        return view('monthly_expenses_records.create', compact('expenses'));
+        $records = MonthlyExpensesRecord::with('expense')->get();
+        $options = MonthlyExpensesList::all();
+
+        return response()->json([
+            'records' => $records,
+            'options' => $options,
+        ]);
     }
 
     /**
@@ -36,14 +39,55 @@ class MonthlyExpensesRecordController extends Controller
             'expense_id' => 'required|exists:monthly_expenses_lists,id',
             'amount' => 'required|numeric|min:0',
             'type' => 'required|in:income,expense',
+            'description' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        MonthlyExpensesRecord::create($request->only(['expense_id', 'amount', 'type']));
-        return redirect()->route('monthly_expenses_records.index')->with('success', 'Record created.');
+        MonthlyExpensesRecord::create($request->only(['expense_id', 'amount', 'type', 'description']));
+        return redirect()->route('page.accounts')->with('success', 'Record created.');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:monthly_expenses_records,id',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $monthlyExpensesRecord = MonthlyExpensesRecord::find($request->id);
+        $monthlyExpensesRecord->delete();
+
+        return redirect()->route('page.accounts')->with('success', 'Record deleted.');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        $expenses = MonthlyExpensesList::all();
+        return view('monthly_expenses_records.create', compact('expenses'));
     }
 
     /**
@@ -82,12 +126,4 @@ class MonthlyExpensesRecordController extends Controller
         return redirect()->route('monthly_expenses_records.index')->with('success', 'Record updated.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(MonthlyExpensesRecord $monthlyExpensesRecord)
-    {
-        $monthlyExpensesRecord->delete();
-        return redirect()->route('monthly_expenses_records.index')->with('success', 'Record deleted.');
-    }
 }

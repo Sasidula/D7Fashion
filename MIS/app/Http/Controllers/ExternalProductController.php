@@ -74,7 +74,7 @@ class ExternalProductController extends Controller
         return redirect()
             ->route('products.manage')
             ->with('success', 'External product updated.')
-            ->with('updatedExternalProduct', $externalProduct);
+            ->with('updatedItem', $externalProduct);
     }
 
 

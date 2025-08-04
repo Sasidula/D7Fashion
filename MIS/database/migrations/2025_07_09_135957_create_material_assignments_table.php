@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('material_stock_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('assigned_by')->constrained('users')->onDelete('cascade');
-            $table->enum('status', ['incomplete', 'complete']);
+            $table->enum('status', ['incomplete', 'complete', 'deleted'])->default('incomplete');
             $table->text('notes')->nullable();
             $table->timestamps();
         });

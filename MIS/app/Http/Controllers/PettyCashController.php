@@ -14,15 +14,7 @@ class PettyCashController extends Controller
     public function index()
     {
         $pettyCashes = PettyCash::all();
-        return view('petty_cash.index', compact('pettyCashes'));
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('petty_cash.create');
+        return view('pages.petty-cash', compact('pettyCashes'));
     }
 
     /**
@@ -41,7 +33,49 @@ class PettyCashController extends Controller
         }
 
         PettyCash::create($request->only(['title', 'amount', 'type']));
-        return redirect()->route('petty_cash.index')->with('success', 'Petty cash created.');
+        return redirect()->route('page.pettyCash')->with('success', 'Petty cash created.');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:petty_cashes,id',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $pettyCash = PettyCash::find($validator->validated()['id']);
+        $pettyCash->delete();
+
+        return redirect()->route('page.pettyCash')->with('success', 'Petty cash deleted.');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        return view('petty_cash.create');
     }
 
     /**
@@ -79,12 +113,4 @@ class PettyCashController extends Controller
         return redirect()->route('petty_cash.index')->with('success', 'Petty cash updated.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(PettyCash $pettyCash)
-    {
-        $pettyCash->delete();
-        return redirect()->route('petty_cash.index')->with('success', 'Petty cash deleted.');
-    }
 }

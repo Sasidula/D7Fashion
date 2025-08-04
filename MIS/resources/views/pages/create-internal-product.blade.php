@@ -47,9 +47,9 @@
                         <form method="POST" action="{{ route('InternalProducts.store') }}" @submit="handleSubmit">
                             @csrf
                             <div class="max-w-2xl mx-auto">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="gap-6">
                                     <!-- Name -->
-                                    <div>
+                                    <div class="gap-6">
                                         <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
                                         <input
                                             type="text"
@@ -61,7 +61,8 @@
                                         />
                                         <p x-show="errors.name" class="mt-1 text-sm text-red-500" x-text="errors.name"></p>
                                     </div>
-
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                     <!-- Price -->
                                     <div>
                                         <label for="price" class="block text-sm font-medium text-gray-700 mb-1">Price (Rs)</label>
@@ -89,8 +90,10 @@
                                         />
                                         <p x-show="errors.sku_code" class="mt-1 text-sm text-red-500" x-text="errors.sku_code"></p>
                                     </div>
+                                </div>
 
                                     <!-- Description -->
+                                <div class="gap-6 mt-6">
                                     <div class="md:col-span-2">
                                         <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                                         <textarea

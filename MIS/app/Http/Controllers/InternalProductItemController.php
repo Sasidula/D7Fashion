@@ -18,7 +18,6 @@ class InternalProductItemController extends Controller
         $validator = Validator::make($request->all(), [
             'internal_product_id' => 'required|exists:internal_products,id',
             'quantity' => 'required|integer|min:1',
-            'created_by' => 'required|exists:users,id',
         ]);
 
         if ($validator->fails()) {
@@ -31,7 +30,7 @@ class InternalProductItemController extends Controller
                 'assignment_id' => null,
                 'use' => 'approved',
                 'status' => 'available',
-                'created_by' => $request->created_by,
+                'created_by' => auth()->user()->id,
             ]);
         }
 

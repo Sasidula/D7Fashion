@@ -10,9 +10,9 @@ class InternalProductItem extends Model {
 
     protected $fillable = ['internal_product_id', 'assignment_id', 'use', 'status', 'created_by'];
 
-    public function product() { return $this->belongsTo(InternalProduct::class)->withTrashed(); }
+    public function internalProduct() { return $this->belongsTo(InternalProduct::class)->withTrashed(); }
 
-    public function assignment() { return $this->belongsTo(MaterialAssignment::class)->nullable(); }
+    public function assignment() { return $this->belongsTo(MaterialAssignment::class); }
 
     public function creator() { return $this->belongsTo(User::class, 'created_by')->withTrashed(); }
 }

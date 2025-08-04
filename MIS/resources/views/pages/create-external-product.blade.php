@@ -45,7 +45,7 @@
                         <form method="POST" action="{{ route('ExternalProducts.store') }}" @submit="handleSubmit">
                             @csrf
                             <div class="max-w-2xl mx-auto">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="gap-6">
                                     <!-- Name -->
                                     <div>
                                         <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
@@ -59,6 +59,8 @@
                                         />
                                         <p x-show="errors.name" class="mt-1 text-sm text-red-500" x-text="errors.name"></p>
                                     </div>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
 
                                     <!-- SKU Code -->
                                     <div>
@@ -83,7 +85,9 @@
                                             class="block w-full border border-gray-300 rounded-md p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
                                         />
                                     </div>
+                                </div>
 
+                                <div class="gap-6 mt-6">
                                     <!-- Description -->
                                     <div class="md:col-span-2">
                                         <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
@@ -95,7 +99,9 @@
                                             rows="3"
                                         ></textarea>
                                     </div>
+                                </div>
 
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                     <!-- Bought Price -->
                                     <div>
                                         <label for="bought_price" class="block text-sm font-medium text-gray-700 mb-1">Bought Price (Rs)</label>

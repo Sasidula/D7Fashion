@@ -90,7 +90,7 @@ class ExternalProductItemController extends Controller
 
         return redirect()
             ->back()
-            ->with('success', 'Product and related items marked as sold.');
+            ->with('success', 'Product and related items marked as deleted.');
     }
 
 

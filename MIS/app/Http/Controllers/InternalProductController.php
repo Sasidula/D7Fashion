@@ -83,8 +83,8 @@ class InternalProductController extends Controller
 
         return redirect()
             ->route('products.manage')
-            ->with('success', 'Product updated.')
-            ->with('updatedInternalProduct', $internalProduct);
+            ->with('success', 'Internal Product updated.')
+            ->with('updatedItem', $internalProduct);
     }
 
 

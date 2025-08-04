@@ -2,12 +2,94 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ExternalProduct;
+use App\Models\ExternalProductItem;
+use App\Models\InternalProduct;
+use App\Models\InternalProductItem;
 use App\Models\ProductSale;
+use App\Models\ProductSalesItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class ProductSaleController extends Controller
 {
+    public function products()
+    {
+        $Internalproducts = InternalProduct::withCount([
+            'items as product_count' => function ($query) {
+                $query->where('status', 'available');
+                $query->where('use', 'approved');
+            }
+        ])->get();
+
+        $Externalproducts = ExternalProduct::withCount([
+            'items as product_count' => function ($query) {
+                $query->where('status', 'available');
+            }
+        ])->get();
+
+        return view('pages.counter', compact('Internalproducts', 'Externalproducts'));
+
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'price' => 'required|numeric|min:0',
+            // Remove 'products' from here, we’ll validate manually
+        ]);
+
+        $products = json_decode($request->input('products'), true);
+
+        if (!is_array($products)) {
+            return back()->withErrors(['products' => 'Products must be a valid array.']);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $sale = ProductSale::create([
+                'price' => $validated['price'],
+            ]);
+
+            foreach ($products as $product) {
+                ProductSalesItem::create([
+                    'product_sales_id' => $sale->id,
+                    'product_id' => $product['id'],
+                    'product_type' => $product['type'],
+                ]);
+
+                if ($product['type'] === 'internal') {
+                    $item = InternalProductItem::where('internal_product_id', $product['id'])
+                        ->where('status', 'available')
+                        ->firstOrFail();
+                } else {
+                    $item = ExternalProductItem::where('external_product_id', $product['id'])
+                        ->where('status', 'available')
+                        ->firstOrFail();
+                }
+
+                $item->update(['status' => 'sold']);
+            }
+
+            DB::commit();
+            return redirect()->back()->with('success', 'Products marked as sold successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Failed to mark products as sold. ' . $e->getMessage());
+        }
+    }
+
+
+
+
+
+
+
+
+
+
     /**
      * Display a listing of the resource.
      */
@@ -28,7 +110,7 @@ class ProductSaleController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function storeunused(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'price' => 'required|numeric|min:0',
@@ -45,7 +127,7 @@ class ProductSaleController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(ProductSale $productSale)
+    public function showunused(ProductSale $productSale)
     {
         return view('product_sales.show', compact('productSale'));
     }

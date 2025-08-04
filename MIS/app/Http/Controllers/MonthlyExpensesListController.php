@@ -13,17 +13,10 @@ class MonthlyExpensesListController extends Controller
      */
     public function index()
     {
-        $expenses = MonthlyExpensesList::withTrashed()->get();
-        return view('monthly_expenses_lists.index', compact('expenses'));
+        $expenses = MonthlyExpensesList::all();
+        return view('pages.accounts', compact('expenses'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('monthly_expenses_lists.create');
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -39,7 +32,34 @@ class MonthlyExpensesListController extends Controller
         }
 
         MonthlyExpensesList::create($request->only(['title']));
-        return redirect()->route('monthly_expenses_lists.index')->with('success', 'Expense list created.');
+        return redirect()->route('page.accounts')->with('success', 'Expense list created.');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(MonthlyExpensesList $monthlyExpensesList)
+    {
+        $monthlyExpensesList->delete();
+        return redirect()->route('page.accounts')->with('success', 'Expense list deleted.');
+    }
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        return view('monthly_expenses_lists.create');
     }
 
     /**
@@ -75,12 +95,4 @@ class MonthlyExpensesListController extends Controller
         return redirect()->route('monthly_expenses_lists.index')->with('success', 'Expense list updated.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(MonthlyExpensesList $monthlyExpensesList)
-    {
-        $monthlyExpensesList->delete();
-        return redirect()->route('monthly_expenses_lists.index')->with('success', 'Expense list deleted.');
-    }
 }

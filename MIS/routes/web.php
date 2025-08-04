@@ -1,13 +1,19 @@
 <?php
 
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\EmployeeBonusAdjustmentController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ExternalProductController;
 use App\Http\Controllers\ExternalProductItemController;
 use App\Http\Controllers\InternalProductController;
 use App\Http\Controllers\InternalProductItemController;
+use App\Http\Controllers\MaterialAssignmentController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\MaterialStockController;
+use App\Http\Controllers\MonthlyExpensesListController;
+use App\Http\Controllers\MonthlyExpensesRecordController;
+use App\Http\Controllers\PettyCashController;
+use App\Http\Controllers\ProductSaleController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
@@ -57,25 +63,8 @@ Route::middleware(['auth', 'restrict.employee'])->group(function () {
         return view('pages.home');
     })->name('dashboard');
 
-    //counter
-    Route::get('/dashboard/counter', function () {
-        return view('pages.counter');
-    })->name('counter');
 
-    // Attendance
-    Route::get('/dashboard/attendance', function () {
-        return view('pages.attendance');
-    })->name('attendance');
 
-    // Petty Cash
-    Route::get('/dashboard/petty-cash', function () {
-        return view('pages.petty-cash');
-    })->name('petty-cash');
-
-    // Accounts
-    Route::get('/dashboard/accounts', function () {
-        return view('pages.accounts');
-    })->name('accounts');
 
     // Reports
     Route::get('/dashboard/reports', function () {
@@ -87,16 +76,6 @@ Route::middleware(['auth', 'restrict.employee'])->group(function () {
         return view('pages.settings');
     })->name('settings');
 
-    // Assignments
-    Route::get('/dashboard/add-assignment', function () {
-        return view('pages.add-assignment');
-    })->name('assignments.add');
-    Route::get('/dashboard/accept-assignment', function () {
-        return view('pages.accept-assignment');
-    })->name('assignments.accept');
-    Route::get('/dashboard/manage-assignment', function () {
-        return view('pages.manage-assignment');
-    })->name('assignments.manage');
 });
 
 // Authenticated user profile routes
@@ -188,6 +167,60 @@ Route::middleware(['auth', 'restrict.employee'])->group(function () {
     Route::patch('/dashboard/manage-product/external/adjust', [ExternalProductItemController::class, 'adjustStock'])->name('externalProducts.adjust');
     Route::delete('/dashboard/manage-product/external', [ExternalProductItemController::class, 'softDeleteMaterial'])->name('externalProducts.softDelete');
 });
+
+//Material Assignment routes
+Route::middleware(['auth', 'restrict.employee'])->group(function () {
+    //create material assignment
+    Route::get('/dashboard/add-assignment', [MaterialAssignmentController::class, 'createindex'])->name('page.assignments.create');
+    Route::post('/dashboard/add-assignment', [MaterialAssignmentController::class, 'store'])->name('assignments.store');
+
+    //accept material assignment
+    Route::get('/dashboard/accept-assignment', [MaterialAssignmentController::class, 'index'])->name('page.assignments.accept');
+    Route::post('/dashboard/accept-assignment', [MaterialAssignmentController::class, 'tobecompletedindex'])->name('assignments.get');
+    Route::post('/dashboard/accept-assignment/complete', [MaterialAssignmentController::class, 'complete'])->name('assignments.complete');
+    Route::patch('/dashboard/accept-assignment/update', [MaterialAssignmentController::class, 'updateassignment'])->name('assignments.update');
+
+
+    //manage material assignment
+    Route::get('/dashboard/manage-assignment', [MaterialAssignmentController::class, 'reviewIndex'])->name('page.assignments.manage');
+    Route::patch('/dashboard/manage-assignment/review', [MaterialAssignmentController::class, 'review'])->name('assignments.review');
+    Route::patch('/dashboard/manage-assignment/revieweach', [MaterialAssignmentController::class, 'revieweach'])->name('assignments.revieweach');
+});
+
+//counter routes
+Route::middleware(['auth', 'restrict.employee'])->group(function () {
+    //counter
+    Route::get('/dashboard/counter',[ProductSaleController::class, 'products'])->name('page.counter');
+    Route::post('/dashboard/counter', [ProductSaleController::class, 'store'])->name('counter.store');
+});
+
+//attendance routes
+Route::middleware(['auth', 'restrict.employee'])->group(function () {
+    //counter
+    Route::get('/dashboard/attendance',[AttendanceController::class, 'index'])->name('page.attendance');
+    Route::post('/dashboard/attendance', [AttendanceController::class, 'check'])->name('attendance.check');
+    Route::patch('/dashboard/attendance', [AttendanceController::class, 'mark'])->name('attendance.mark');
+});
+
+//petti cash routes
+Route::middleware(['auth', 'restrict.employee'])->group(function () {
+    Route::get('/dashboard/petty-cash',[PettyCashController::class, 'index'])->name('page.pettyCash');
+    Route::post('/dashboard/petty-cash', [PettyCashController::class, 'store'])->name('pettyCash.store');
+    Route::delete('/dashboard/petty-cash', [PettyCashController::class, 'destroy'])->name('pettyCash.destroy');
+});
+
+//accounts routes
+Route::middleware(['auth', 'restrict.employee'])->group(function () {
+    Route::get('/dashboard/accounts',[MonthlyExpensesRecordController::class, 'index'])->name('page.accounts');
+
+    Route::post('/dashboard/accounts', [MonthlyExpensesRecordController::class, 'store'])->name('expense.store');
+    Route::delete('/dashboard/accounts', [MonthlyExpensesRecordController::class, 'destroy'])->name('expense.destroy');
+
+    Route::post('/dashboard/expense/list', [MonthlyExpensesListController::class, 'store'])->name('title.store');
+    Route::delete('/dashboard/expense/list', [MonthlyExpensesListController::class, 'destroy'])->name('title.destroy');
+});
+
+Route::get('/dashboard/accounts/test',[MonthlyExpensesRecordController::class, 'indextest'])->name('page.accounts.test');
 
 // Load additional auth routes (login, register, reset, etc.)
 require __DIR__.'/auth.php';

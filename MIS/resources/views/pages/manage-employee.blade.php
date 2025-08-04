@@ -32,13 +32,11 @@
                             {{ session('deleted') }}
                         </div>
                     @endif
-
                     @if (session('status'))
                         <div class="mb-4 text-green-600 bg-green-100 border border-green-300 rounded p-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 10000)">
                             {{ session('status') }}
                         </div>
                     @endif
-
                     @if ($errors->any())
                         <div class="mb-4 text-red-600 bg-red-100 border border-red-300 rounded p-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 10000)">
                             <ul class="list-disc list-inside">
@@ -106,6 +104,21 @@
                     </button>
                     <div class="w-6"></div>
                 </div>
+                @if (session('status'))
+                    <div class="mb-4 text-green-600 bg-green-100 border border-green-300 rounded p-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 10000)">
+                        {{ session('status') }}
+                    </div>
+                @endif
+
+                @if ($errors->any())
+                    <div class="mb-4 text-red-600 bg-red-100 border border-red-300 rounded p-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 10000)">
+                        <ul class="list-disc list-inside">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
                 <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                     <header>
                         <h2 class="text-lg font-medium text-gray-900">
@@ -159,7 +172,7 @@
                                     x-data="{ show: true }"
                                     x-show="show"
                                     x-transition
-                                    x-init="setTimeout(() => show = false, 2000)"
+                                    x-init="setTimeout(() => show = false, 10000)"
                                     class="text-sm text-gray-600"
                                 >{{ __('Saved.') }}</p>
                             @endif
@@ -204,7 +217,7 @@
                                     x-data="{ show: true }"
                                     x-show="show"
                                     x-transition
-                                    x-init="setTimeout(() => show = false, 2000)"
+                                    x-init="setTimeout(() => show = false, 10000)"
                                     class="text-sm text-gray-600"
                                 >{{ __('Saved.') }}</p>
                             @endif
