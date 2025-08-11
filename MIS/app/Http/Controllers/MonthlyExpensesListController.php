@@ -38,8 +38,18 @@ class MonthlyExpensesListController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(MonthlyExpensesList $monthlyExpensesList)
+    public function destroy(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:monthly_expenses_lists,id',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $monthlyExpensesList = MonthlyExpensesList::find($request->id);
+
         $monthlyExpensesList->delete();
         return redirect()->route('page.accounts')->with('success', 'Expense list deleted.');
     }

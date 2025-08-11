@@ -126,6 +126,12 @@
       <excludeFolder url="file://$MODULE_DIR$/MIS/vendor/codeat3/blade-clarity-icons" />
       <excludeFolder url="file://$MODULE_DIR$/MIS/vendor/barryvdh/laravel-debugbar" />
       <excludeFolder url="file://$MODULE_DIR$/MIS/vendor/php-debugbar/php-debugbar" />
+      <excludeFolder url="file://$MODULE_DIR$/MIS/vendor/barryvdh/laravel-dompdf" />
+      <excludeFolder url="file://$MODULE_DIR$/MIS/vendor/dompdf/dompdf" />
+      <excludeFolder url="file://$MODULE_DIR$/MIS/vendor/dompdf/php-font-lib" />
+      <excludeFolder url="file://$MODULE_DIR$/MIS/vendor/dompdf/php-svg-lib" />
+      <excludeFolder url="file://$MODULE_DIR$/MIS/vendor/masterminds/html5" />
+      <excludeFolder url="file://$MODULE_DIR$/MIS/vendor/sabberworm/php-css-parser" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -27,9 +27,230 @@
             <!-- Page content wrapper -->
             <div class="flex-1 overflow-y-auto transition-all duration-300 ease-in-out">
                 <main class="p-6">
+                    <div class="py-6">
+                        <div class="max-w-3xl mx-auto sm:px-6 lg:max-w-7xl lg:px-8">
+                            @if (session('success'))
+                                <div class="mb-4 text-green-600 bg-green-100 border border-green-300 rounded p-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 10000)">
+                                    {{ session('success') }}
+                                </div>
+                            @endif
+                            @if ($errors->any())
+                                <div class="mb-4 text-red-600 bg-red-100 border border-red-300 rounded p-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 10000)">
+                                    <ul class="list-disc list-inside">
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+                                <div class="p-6 sm:px-20 bg-white border-b border-gray-200">
 
+                                    {{-- Page Header --}}
+                                    <header>
+                                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Settings</h2>
+                                    </header>
+
+                                    {{-- Manage Material --}}
+                                    <div class="mt-10">
+                                        <header>
+                                            <h3 class="text-lg font-semibold text-gray-800 mt-4 mb-4 ml-2">Manage Material</h3>
+                                        </header>
+
+                                        {{-- Unavailable Material --}}
+                                        <div class="mt-6 bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+                                            <h4 class="text-md font-medium text-gray-700">Delete Unavailable Material</h4>
+                                            <p class="text-sm text-gray-600">Are you sure you want to delete this material?</p>
+                                            <div class="flex justify-end mt-4">
+                                                <button
+                                                    @click="$dispatch('open-modal', 'delete-material-unavailable')"
+                                                    class="bg-[#fd9c0a] hover:bg-orange-600 text-white px-4 py-2 rounded-md"
+                                                >
+                                                    <x-lucide-trash class="w-4 h-4 inline-block mr-2" />
+                                                    {{ __('Delete') }}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {{-- Deleted Material --}}
+                                        <div class="mt-6 bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+                                            <h4 class="text-md font-medium text-gray-700">Delete Deleted Material</h4>
+                                            <p class="text-sm text-gray-600">Are you sure you want to delete these deleted this materials?</p>
+                                            <div class="flex justify-end mt-4">
+                                                <button @click="$dispatch('open-modal', 'delete-material-deleted')" class="bg-[#fd9c0a] hover:bg-orange-600 text-white px-4 py-2 rounded-md">
+                                                    <x-lucide-trash class="w-4 h-4 inline-block mr-2" />
+                                                    {{ __('Delete') }}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Manage Internal Products --}}
+                                    <div class="mt-10">
+                                        <header>
+                                            <h3 class="text-lg font-semibold text-gray-800 mt-4 mb-4 ml-2">Manage Internal Products</h3>
+                                        </header>
+
+                                        {{-- Sold Internal Products --}}
+                                        <div class="mt-6 bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+                                            <h4 class="text-md font-medium text-gray-700">Delete Sold Internal Products</h4>
+                                            <p class="text-sm text-gray-600">Are you sure you want to delete these deleted Internal Products?</p>
+                                            <div class="flex justify-end mt-4">
+                                                <button @click="$dispatch('open-modal', 'delete-Internal-Product-sold')" class="bg-[#fd9c0a] hover:bg-orange-600 text-white px-4 py-2 rounded-md">
+                                                    <x-lucide-trash class="w-4 h-4 inline-block mr-2" />
+                                                    {{ __('Delete') }}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {{-- Deleted Internal Products --}}
+                                        <div class="mt-6 bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+                                            <h4 class="text-md font-medium text-gray-700">Delete Deleted Internal Products</h4>
+                                            <p class="text-sm text-gray-600">Are you sure you want to delete these deleted Internal Products?</p>
+                                            <div class="flex justify-end mt-4">
+                                                <button
+                                                    @click="$dispatch('open-modal', 'delete-Internal-Product-deleted')"
+                                                    class="bg-[#fd9c0a] hover:bg-orange-600 text-white px-4 py-2 rounded-md"
+                                                >
+                                                    <x-lucide-trash class="w-4 h-4 inline-block mr-2" />
+                                                    {{ __('Delete') }}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Manage External Products --}}
+                                    <div class="mt-10">
+                                        <header>
+                                            <h3 class="text-lg font-semibold text-gray-800 mt-4 mb-4 ml-2">Manage External Products</h3>
+                                        </header>
+
+                                        {{-- Sold External Products --}}
+                                        <div class="mt-6 bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+                                            <h4 class="text-md font-medium text-gray-700">Delete Sold External Products</h4>
+                                            <p class="text-sm text-gray-600">Are you sure you want to delete these deleted External products?</p>
+                                            <div class="flex justify-end mt-4">
+                                                <button
+                                                    @click="$dispatch('open-modal', 'delete-External-Product-sold')"
+                                                    class="bg-[#fd9c0a] hover:bg-orange-600 text-white px-4 py-2 rounded-md"
+                                                >
+                                                    <x-lucide-trash class="w-4 h-4 inline-block mr-2" />
+                                                    {{ __('Delete') }}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {{-- Deleted External Products --}}
+                                        <div class="mt-6 bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+                                            <h4 class="text-md font-medium text-gray-700">Delete Deleted External Products</h4>
+                                            <p class="text-sm text-gray-600">Are you sure you want to delete these deleted External products?</p>
+                                            <div class="flex justify-end mt-4">
+                                                <button
+                                                    @click="$dispatch('open-modal', 'delete-External-Product-deleted')"
+                                                    class="bg-[#fd9c0a] hover:bg-orange-600 text-white px-4 py-2 rounded-md"
+                                                >
+                                                    <x-lucide-trash class="w-4 h-4 inline-block mr-2" />
+                                                    {{ __('Delete') }}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </main>
             </div>
+
+            <x-modal name="delete-material-unavailable" focusable>
+                <div class="p-6">
+                    <p class="mb-4 text-gray-700">Are you sure you want to delete these unavailable materials?</p>
+                    <form action="{{ route('page.settings.material.unavailable') }}" method="POST">
+                        @csrf
+                        <div class="flex justify-end">
+                            <button type="submit" class="bg-[#fd9c0a] hover:bg-orange-600 text-white px-4 py-2 rounded-md justify-end">
+                                <x-lucide-trash class="w-4 h-4 inline-block mr-2" />
+                                {{ __('Delete') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </x-modal>
+
+            <x-modal name="delete-material-deleted" focusable>
+                <div class="p-6">
+                    <p class="mb-4 text-gray-700">Are you sure you want to delete these deleted this materials?</p>
+                    <form action="{{ route('page.settings.material.deleted') }}" method="POST">
+                        @csrf
+                        <div class="flex justify-end">
+                            <button type="submit" class="bg-[#fd9c0a] hover:bg-orange-600 text-white px-4 py-2 rounded-md justify-end">
+                                <x-lucide-trash class="w-4 h-4 inline-block mr-2" />
+                                {{ __('Delete') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </x-modal>
+
+            <x-modal name="delete-Internal-Product-sold" focusable>
+                <div class="p-6">
+                    <p class="mb-4 text-gray-700">Are you sure you want to delete these Sold Internal Products?</p>
+                    <form action="{{ route('page.settings.internalProduct.sold') }}" method="POST">
+                        @csrf
+                        <div class="flex justify-end">
+                            <button type="submit" class="bg-[#fd9c0a] hover:bg-orange-600 text-white px-4 py-2 rounded-md justify-end">
+                                <x-lucide-trash class="w-4 h-4 inline-block mr-2" />
+                                {{ __('Delete') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </x-modal>
+
+            <x-modal name="delete-Internal-Product-deleted" focusable>
+                <div class="p-6">
+                    <p class="mb-4 text-gray-700">Are you sure you want to delete these deleted Internal Products?</p>
+                    <form action="{{ route('page.settings.internalProduct.deleted') }}" method="POST">
+                        @csrf
+                        <div class="flex justify-end">
+                            <button type="submit" class="bg-[#fd9c0a] hover:bg-orange-600 text-white px-4 py-2 rounded-md justify-end">
+                                <x-lucide-trash class="w-4 h-4 inline-block mr-2" />
+                                {{ __('Delete') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </x-modal>
+
+            <x-modal name="delete-External-Product-deleted" focusable>
+                <div class="p-6">
+                    <p class="mb-4 text-gray-700">Are you sure you want to delete these deleted External Products?</p>
+                    <form action="{{ route('page.settings.externalProduct.deleted') }}" method="POST">
+                        @csrf
+                        <div class="flex justify-end">
+                            <button type="submit" class="bg-[#fd9c0a] hover:bg-orange-600 text-white px-4 py-2 rounded-md justify-end">
+                                <x-lucide-trash class="w-4 h-4 inline-block mr-2" />
+                                {{ __('Delete') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </x-modal>
+
+            <x-modal name="delete-External-Product-sold" focusable>
+                <div class="p-6">
+                    <p class="mb-4 text-gray-700">Are you sure you want to delete these Sold External Products?</p>
+                    <form action="{{ route('page.settings.externalProduct.sold') }}" method="POST">
+                        @csrf
+                        <div class="flex justify-end">
+                            <button type="submit" class="bg-[#fd9c0a] hover:bg-orange-600 text-white px-4 py-2 rounded-md justify-end">
+                                <x-lucide-trash class="w-4 h-4 inline-block mr-2" />
+                                {{ __('Delete') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </x-modal>
         </div>
 
         <!-- Popup -->

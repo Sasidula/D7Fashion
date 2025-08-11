@@ -28,6 +28,20 @@
             <!-- Page content wrapper -->
             <div class="flex-1 overflow-y-auto transition-all duration-300 ease-in-out">
                 <main class="p-6">
+                    @if (session('success'))
+                        <div class="mb-4 text-green-600 bg-green-100 border border-green-300 rounded p-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 10000)">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+                    @if ($errors->any())
+                        <div class="mb-4 text-red-600 bg-red-100 border border-red-300 rounded p-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 10000)">
+                            <ul class="list-disc list-inside">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                     <div
                         class="bg-white rounded-lg shadow-md p-6"
                     >
@@ -56,15 +70,15 @@
                                                 Title
                                             </label>
                                             <select
-                                                id="title"
-                                                name="title"
+                                                id="expense_id"
+                                                name="expense_id"
                                                 class="w-full block border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
                                                 required
                                             >
                                                 <option value="">-- Select a title --</option>
-                                                    @foreach ($options as $title)
-                                                        <option :value="{{ $title->id}}">{{ $title->title }}</option>
-                                                    @endforeach
+                                                @foreach ($options as $title)
+                                                    <option value="{{ $title->id }}">{{ $title->title }}</option>
+                                                @endforeach
                                             </select>
                                         </div>
                                         <!-- edit -->
@@ -96,7 +110,7 @@
                                                 required
                                             >
                                                 <option value="income">Income</option>
-                                                <option value="outcome">Outcome</option>
+                                                <option value="expense">Expense</option>
                                             </select>
                                         </div>
 
@@ -165,6 +179,9 @@
                                         Description
                                     </th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Created At
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Action
                                     </th>
                                 </tr>
@@ -176,6 +193,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap {{$row->type === 'income' ? 'text-green-600' : 'text-red-600'}}">{{$row->type}}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">Rs.{{$row->amount}}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{$row->description}}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{$row->created_at->format('Y-m-d H:i')}}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <button
                                                 @click="selectedRecord = {{ $row->id }}; $dispatch('open-modal', 'delete-modal')"
@@ -196,7 +214,7 @@
 {{--            edit titles--}}
             <x-modal name="edit-modal" :scrollable="true">
                 <!-- Add/Remove Titles -->
-                <div class="mt-8 max-w-2xl mx-auto">
+                <div class="p-6">
                     <div class="flex items-center justify-between p-4 border-b border-gray-200 sticky top-0 bg-white z-10">
                         <button x-on:click="$dispatch('close')" class="text-gray-600 hover:text-gray-900">
                             <x-lucide-arrow-left class="w-6 h-6" />
@@ -205,22 +223,30 @@
                     </div>
                     <h2 class="text-lg font-medium mb-4 text-[#0f2360]">Manage Titles</h2>
 {{--                    add new form--}}
-                    <div class="flex space-x-4">
-                        <input
-                            type="text"
-                            x-model="newTitle"
-                            placeholder="New title"
-                            class="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
-                        />
-                        <button
-                            class="bg-[#fd9c0a] text-white py-2 px-4 rounded-md hover:bg-[#e08c09] flex items-center"
-                        >
-                            <x-lucide-plus class="w-5 h-5 mr-2" />
-                            Add
-                        </button>
-                    </div>
+                    <h3 class="text-sm font-medium mb-2 text-[#0f2360]">Add New Title</h3>
+                    <form method="POST" action="{{ route('title.store') }}" >
+                        @method('POST')
+                        @csrf
+                        <div class="flex space-x-4">
+                            <input
+                                type="text"
+                                id="title"
+                                name="title"
+                                placeholder="New title"
+                                class="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
+                                required
+                            />
+                            <button
+                                class="bg-[#fd9c0a] text-white py-2 px-4 rounded-md hover:bg-[#e08c09] flex items-center"
+                            >
+                                <x-lucide-plus class="w-5 h-5 mr-2" />
+                                Add
+                            </button>
+                        </div>
+                    </form>
 {{--                    delete title--}}
-                    <div class="mt-4">
+                    <h3 class="text-sm font-medium mt-4 mb-2 text-[#0f2360] mt-4">Delete Title</h3>
+                    <div class="space-y-2">
                         @foreach($options as $title)
                             <div class="flex justify-between items-center py-2">
                                 <span>{{ $title->title }}</span>
@@ -240,10 +266,10 @@
             <x-modal name="delete-modal" focusable>
                 <div class="p-6">
                     <p class="mb-4 text-gray-700">Are you sure you want to delete this record?</p>
-                    <form method="POST" action="{{ route('pettyCash.destroy') }}">
+                    <form method="POST" action="{{ route('expense.destroy') }}">
                         @csrf
                         @method('DELETE')
-                        <input type="hidden" name="id" :value="selected">
+                        <input type="hidden" id="id" name="id" :value="selectedRecord">
                         <div class="flex justify-end space-x-3">
                             <button type="button" @click="$dispatch('close')" class="px-4 py-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300">
                                 Cancel
@@ -263,7 +289,7 @@
                     <form method="POST" action="{{ route('title.destroy') }}">
                         @csrf
                         @method('DELETE')
-                        <input type="hidden" name="id" :value="selected">
+                        <input type="hidden" id="id" name="id" :value="selectedItem">
                         <div class="flex justify-end space-x-3">
                             <button type="button" @click="$dispatch('close')" class="px-4 py-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300">
                                 Cancel

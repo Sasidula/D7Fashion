@@ -10,5 +10,7 @@ class MonthlyExpensesRecord extends Model {
 
     protected $fillable = ['expense_id', 'amount', 'type', 'description'];
 
-    public function expense() { return $this->belongsTo(MonthlyExpensesList::class, 'expense_id'); }
+    public function expense() {
+        return $this->belongsTo(MonthlyExpensesList::class, 'expense_id')->withTrashed();
+    }
 }

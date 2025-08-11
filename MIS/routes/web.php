@@ -14,6 +14,8 @@ use App\Http\Controllers\MonthlyExpensesListController;
 use App\Http\Controllers\MonthlyExpensesRecordController;
 use App\Http\Controllers\PettyCashController;
 use App\Http\Controllers\ProductSaleController;
+use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\SettingController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
@@ -50,7 +52,7 @@ Route::get('/dashboard/{page?}', function ($page = 'home') {
 })->middleware(['auth', 'restrict.employee'])->name('dashboard');
 */
 
-// =================== NON-MODULAR DASHBOARD ROUTES =================== //
+// =================== DASHBOARD ROUTE =================== //
 Route::middleware(['auth', 'restrict.employee'])->group(function () {
 
     //to dashboard
@@ -62,19 +64,6 @@ Route::middleware(['auth', 'restrict.employee'])->group(function () {
     Route::get('/dashboard/home', function () {
         return view('pages.home');
     })->name('dashboard');
-
-
-
-
-    // Reports
-    Route::get('/dashboard/reports', function () {
-        return view('pages.reports');
-    })->name('reports');
-
-    // Settings
-    Route::get('/dashboard/settings', function () {
-        return view('pages.settings');
-    })->name('settings');
 
 });
 
@@ -220,7 +209,33 @@ Route::middleware(['auth', 'restrict.employee'])->group(function () {
     Route::delete('/dashboard/expense/list', [MonthlyExpensesListController::class, 'destroy'])->name('title.destroy');
 });
 
-Route::get('/dashboard/accounts/test',[MonthlyExpensesRecordController::class, 'indextest'])->name('page.accounts.test');
+Route::middleware(['auth', 'restrict.employee'])->group(function () {
+//    // Reports
+//    Route::get('/dashboard/reports', function () {
+//        return view('pages.reports');
+//    })->name('page.reports');
 
+    Route::get('/dashboard/reports',[ReportsController::class, 'index'])->name('page.reports');
+
+    Route::post('/dashboard/reports', [ReportsController::class, 'exportPdf'])->name('report.export');
+
+    Route::get('/monthly-expenses/report', [ReportsController::class, 'index']);
+    Route::get('/monthly-expenses/export', [ReportsController::class, 'exportPdf']);
+});
+
+//settings routes
+Route::middleware(['auth', 'restrict.employee'])->group(function () {
+    Route::get('/dashboard/settings', function () {
+        return view('pages.settings');
+    })->name('page.settings');
+
+    Route::post('/dashboard/settings/material/deleted', [SettingController::class, 'destroyDeletedMaterial'])->name('page.settings.material.deleted');
+    Route::post('/dashboard/settings/Internal-product/deleted', [SettingController::class, 'destroyDeletedInternalProduct'])->name('page.settings.internalProduct.deleted');
+    Route::post('/dashboard/settings/external-product/deleted', [SettingController::class, 'destroyDeletedExternalProduct'])->name('page.settings.externalProduct.deleted');
+
+    Route::post('/dashboard/settings/material/unavailable', [SettingController::class, 'destroyUnavailableMaterial'])->name('page.settings.material.unavailable');
+    Route::post('/dashboard/settings/Internal-product/sold', [SettingController::class, 'destroySoldInternalProduct'])->name('page.settings.internalProduct.sold');
+    Route::post('/dashboard/settings/external-product/sold', [SettingController::class, 'destroySoldExternalProduct'])->name('page.settings.externalProduct.sold');
+});
 // Load additional auth routes (login, register, reset, etc.)
 require __DIR__.'/auth.php';

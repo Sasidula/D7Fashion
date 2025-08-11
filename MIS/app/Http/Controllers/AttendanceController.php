@@ -13,8 +13,9 @@ class AttendanceController extends Controller
 
     public function index()
     {
+        $attendances = Attendance::with('user')->get();
         $employees = User::where('role', 'employee')->get();
-        return view('pages.attendance', compact('employees'));
+        return view('pages.attendance', compact('employees', 'attendances'));
     }
 
     public function check(Request $request)

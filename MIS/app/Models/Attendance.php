@@ -10,5 +10,11 @@ class Attendance extends Model {
 
     protected $fillable = ['user_id', 'date', 'check_in', 'check_out'];
 
+    protected $casts = [
+        'date' => 'date',         // Cast date as Carbon instance
+        'check_in' => 'datetime:H:i:s',  // optionally cast times (or 'string' if preferred)
+        'check_out' => 'datetime:H:i:s',
+    ];
+
     public function user() { return $this->belongsTo(User::class)->withTrashed(); }
 }
