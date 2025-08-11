@@ -218,9 +218,7 @@ Route::middleware(['auth', 'restrict.employee'])->group(function () {
     Route::get('/dashboard/reports',[ReportsController::class, 'index'])->name('page.reports');
 
     Route::post('/dashboard/reports', [ReportsController::class, 'exportPdf'])->name('report.export');
-
-    Route::get('/monthly-expenses/report', [ReportsController::class, 'index']);
-    Route::get('/monthly-expenses/export', [ReportsController::class, 'exportPdf']);
+    Route::post('/dashboard/reports/print', [ReportsController::class, 'PrintPdf'])->name('report.print');
 });
 
 //settings routes

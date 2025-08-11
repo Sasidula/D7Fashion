@@ -83,13 +83,22 @@
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
                             <h1 class="text-2xl font-bold text-[#0f2360] mb-4 md:mb-0">Reports</h1>
                             <div class="flex flex-wrap gap-2">
-                                <button
-                                    @click="handlePrint"
-                                    class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
-                                >
-                                    <x-lucide-printer class="w-4 h-4 mr-2" />
-                                    Print
-                                </button>
+                                <form action="{{route('report.print')}}" method="POST">
+                                    @method('POST')
+                                    @csrf
+
+                                    <input type="hidden" name="reportType" x-model="selectedReportType">
+                                    <input type="hidden" name="year" x-model="year">
+                                    <input type="hidden" name="month" x-model="month">
+
+                                    <button
+                                        type="submit"
+                                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
+                                    >
+                                        <x-lucide-printer class="w-4 h-4 mr-2" />
+                                        Print
+                                    </button>
+                                </form>
                                 <form action="{{route('report.export')}}" method="POST">
                                     @method('POST')
                                     @csrf
