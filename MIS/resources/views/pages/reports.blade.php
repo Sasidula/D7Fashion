@@ -62,19 +62,6 @@
                             },
                             toggleFilters() {
                                 this.showFilters = !this.showFilters;
-                            },
-                            handlePrint() {
-                                window.print();
-                            },
-                            handleExport() {
-                                console.log('Exporting report...');
-                                alert('Report exported successfully!');
-                            },
-                            calculateSalesTotals() {
-                                return {
-                                    quantity: this.salesData.reduce((sum, item) => sum + item.quantity, 0),
-                                    amount: this.salesData.reduce((sum, item) => sum + item.amount, 0).toFixed(2)
-                                };
                             }
                         }"
                         class="bg-white rounded-lg shadow-md p-6"
@@ -418,7 +405,7 @@
                                     Salary Report:
                                     <template x-if="year || month">
                                         <span>
-                                            <span x-text="year ? year : 'All Years'"></span>
+                                            <span x-text="year ? year : 'Current Year and Month'"></span>
                                             <span x-show="month"> - <span x-text="monthName()"></span></span>
                                         </span>
                                     </template>

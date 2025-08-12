@@ -210,11 +210,13 @@ Route::middleware(['auth', 'restrict.employee'])->group(function () {
 });
 
 Route::middleware(['auth', 'restrict.employee'])->group(function () {
-//    // Reports
-//    Route::get('/dashboard/reports', function () {
-//        return view('pages.reports');
-//    })->name('page.reports');
+    Route::get('/dashboard/salary',[ReportsController::class, 'SalaryIndex'])->name('page.salary');
 
+    Route::post('/dashboard/salary',[ReportsController::class, 'salaryExport'])->name('salary.export');
+    Route::post('/dashboard/salary/print',[ReportsController::class, 'salaryPrint'])->name('salary.print');
+});
+
+Route::middleware(['auth', 'restrict.employee'])->group(function () {
     Route::get('/dashboard/reports',[ReportsController::class, 'index'])->name('page.reports');
 
     Route::post('/dashboard/reports', [ReportsController::class, 'exportPdf'])->name('report.export');

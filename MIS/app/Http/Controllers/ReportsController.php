@@ -375,4 +375,288 @@ class ReportsController extends Controller
 
         return redirect()->back()->with('error', 'Invalid report type.');
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function salaryIndex(Request $request)
+    {
+        Log::info("test index salary");
+        Log::info($request->user_id);
+
+        $request->validate([
+            'user_id' => 'nullable|exists:users,id',
+        ]);
+
+        $employees = User::all();
+
+        $month = $request->monthx ?? now()->month;
+        $year  = $request->yearx ?? now()->year;
+
+        $salaryData = collect();
+
+        if($request->filled('user_id')) {
+            // Load users with attendances and bonusAdjustments for the given month and year
+            $users = User::with([
+                'attendances' => function($q) use ($month, $year) {
+                    $q->whereMonth('date', $month)->whereYear('date', $year);
+                },
+                'bonusAdjustments' => function($q) use ($month, $year) {
+                    $q->whereMonth('created_at', $month)->whereYear('created_at', $year);
+                }
+            ])->where('id', $request->user_id)->withTrashed()->get();
+
+            // Salary calculation including bonus adjustments
+            $salaryData = $users->map(function($user) use ($month) {
+                $workedHours = 0;
+
+                foreach ($user->attendances as $att) {
+
+                    if ($att->check_in && $att->check_out) {
+                        $checkIn  = Carbon::parse($att->check_in);
+                        $checkOut = Carbon::parse($att->check_out);
+                        $workedHours += $checkOut->diffInMinutes($checkIn,true) / 60; // more accurate
+                    }
+                }
+
+                // Calculate base salary
+                if ($user->salary_type === 'monthly') {
+                    $baseSalary = $user->salary_amount;
+                } elseif ($user->salary_type === 'hourly') {
+                    $baseSalary = $workedHours * $user->salary_amount;
+                } else {
+                    $baseSalary = 0;
+                }
+
+                // Sum bonus adjustments for this month
+                $totalBonusAdds = $user->bonusAdjustments
+                    ->where('action', 'add')
+                    ->sum('amount');
+
+                $totalBonusRemoves = $user->bonusAdjustments
+                    ->where('action', 'remove')
+                    ->sum('amount');
+
+                // Final salary = base + adds - removes
+                $finalSalary = $baseSalary + $totalBonusAdds - $totalBonusRemoves;
+
+                return [
+                    'month'            => Carbon::create(null, $month)->format('F'),
+                    'name'             => $user->name,
+                    'worked_hours'     => round($workedHours, 2),
+                    'salary_type'      => ucfirst($user->salary_type),
+                    'rate'             => $user->salary_amount,
+                    'base_salary'      => round($baseSalary, 2),
+                    'bonus_adds'       => round($totalBonusAdds, 2),
+                    'bonus_removes'    => round($totalBonusRemoves, 2),
+                    'calculatedSalary' => round($finalSalary, 2),
+                ];
+            });
+        }
+
+        Log::info($salaryData);
+        Log::info($request->user_id);
+        $test = User::where('id', $request->user_id)->get();
+        Log::info($test);
+        Log::info($request->monthx);
+        Log::info($request->yearx);
+        Log::info($employees);
+
+        return view('pages.salary', [
+            'employees'    => $employees,
+            'user'         => $request->user_id ?? '',
+            'salaryReport' => $salaryData,
+            'month'        => $request->monthx ?? '',
+            'year'         => $request->yearx ?? '',
+        ]);
+    }
+
+    public function salaryExport(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'nullable|exists:users,id',
+        ]);
+
+        $month = $request->monthx ?? now()->month;
+        $year  = $request->yearx ?? now()->year;
+
+        $salaryData = collect();
+
+        if($request->filled('user_id')) {
+            // Load users with attendances and bonusAdjustments for the given month and year
+            $users = User::with([
+                'attendances' => function($q) use ($month, $year) {
+                    $q->whereMonth('date', $month)->whereYear('date', $year);
+                },
+                'bonusAdjustments' => function($q) use ($month, $year) {
+                    $q->whereMonth('created_at', $month)->whereYear('created_at', $year);
+                }
+            ])->where('id', $request->user_id)->withTrashed()->get();
+
+            // Salary calculation including bonus adjustments
+            $salaryData = $users->map(function($user) use ($month) {
+                $workedHours = 0;
+
+                foreach ($user->attendances as $att) {
+
+                    if ($att->check_in && $att->check_out) {
+                        $checkIn  = Carbon::parse($att->check_in);
+                        $checkOut = Carbon::parse($att->check_out);
+                        $workedHours += $checkOut->diffInMinutes($checkIn,true) / 60; // more accurate
+                    }
+                }
+
+                // Calculate base salary
+                if ($user->salary_type === 'monthly') {
+                    $baseSalary = $user->salary_amount;
+                } elseif ($user->salary_type === 'hourly') {
+                    $baseSalary = $workedHours * $user->salary_amount;
+                } else {
+                    $baseSalary = 0;
+                }
+
+                // Sum bonus adjustments for this month
+                $totalBonusAdds = $user->bonusAdjustments
+                    ->where('action', 'add')
+                    ->sum('amount');
+
+                $totalBonusRemoves = $user->bonusAdjustments
+                    ->where('action', 'remove')
+                    ->sum('amount');
+
+                // Final salary = base + adds - removes
+                $finalSalary = $baseSalary + $totalBonusAdds - $totalBonusRemoves;
+
+                return [
+                    'month'            => Carbon::create(null, $month)->format('F'),
+                    'name'             => $user->name,
+                    'worked_hours'     => round($workedHours, 2),
+                    'salary_type'      => ucfirst($user->salary_type),
+                    'rate'             => $user->salary_amount,
+                    'base_salary'      => round($baseSalary, 2),
+                    'bonus_adds'       => round($totalBonusAdds, 2),
+                    'bonus_removes'    => round($totalBonusRemoves, 2),
+                    'calculatedSalary' => round($finalSalary, 2),
+                ];
+            });
+        }
+
+        Log::info($salaryData);
+        Log::info($request->monthx ?? '');
+        Log::info($request->yearx) ?? '';
+        Log::info($request->user_id ?? '');
+        $test = User::find($request->user_id);
+        Log::info($test);
+
+        $user = User::find($request->user_id);
+        $salaryReport = $salaryData;
+        $month = $request->monthx ?? '';
+        $year = $request->yearx ?? '';
+
+        $pdf = PDF::loadView('reports.salary_slip_pdf', compact('salaryReport', 'user', 'month', 'year'));
+        return $pdf->download('salary_slip.pdf');
+    }
+
+    public function salaryPrint(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'nullable|exists:users,id',
+        ]);
+
+        $month = $request->monthx ?? now()->month;
+        $year  = $request->yearx ?? now()->year;
+
+        $salaryData = collect();
+
+        if($request->filled('user_id')) {
+            // Load users with attendances and bonusAdjustments for the given month and year
+            $users = User::with([
+                'attendances' => function($q) use ($month, $year) {
+                    $q->whereMonth('date', $month)->whereYear('date', $year);
+                },
+                'bonusAdjustments' => function($q) use ($month, $year) {
+                    $q->whereMonth('created_at', $month)->whereYear('created_at', $year);
+                }
+            ])->where('id', $request->user_id)->withTrashed()->get();
+
+            // Salary calculation including bonus adjustments
+            $salaryData = $users->map(function($user) use ($month) {
+                $workedHours = 0;
+
+                foreach ($user->attendances as $att) {
+
+                    if ($att->check_in && $att->check_out) {
+                        $checkIn  = Carbon::parse($att->check_in);
+                        $checkOut = Carbon::parse($att->check_out);
+                        $workedHours += $checkOut->diffInMinutes($checkIn,true) / 60; // more accurate
+                    }
+                }
+
+                // Calculate base salary
+                if ($user->salary_type === 'monthly') {
+                    $baseSalary = $user->salary_amount;
+                } elseif ($user->salary_type === 'hourly') {
+                    $baseSalary = $workedHours * $user->salary_amount;
+                } else {
+                    $baseSalary = 0;
+                }
+
+                // Sum bonus adjustments for this month
+                $totalBonusAdds = $user->bonusAdjustments
+                    ->where('action', 'add')
+                    ->sum('amount');
+
+                $totalBonusRemoves = $user->bonusAdjustments
+                    ->where('action', 'remove')
+                    ->sum('amount');
+
+                // Final salary = base + adds - removes
+                $finalSalary = $baseSalary + $totalBonusAdds - $totalBonusRemoves;
+
+                return [
+                    'month'            => Carbon::create(null, $month)->format('F'),
+                    'name'             => $user->name,
+                    'worked_hours'     => round($workedHours, 2),
+                    'salary_type'      => ucfirst($user->salary_type),
+                    'rate'             => $user->salary_amount,
+                    'base_salary'      => round($baseSalary, 2),
+                    'bonus_adds'       => round($totalBonusAdds, 2),
+                    'bonus_removes'    => round($totalBonusRemoves, 2),
+                    'calculatedSalary' => round($finalSalary, 2),
+                ];
+            });
+        }
+
+        Log::info("printing");
+        Log::info($salaryData);
+        Log::info($request->monthx ?? '');
+        Log::info($request->yearx) ?? '';
+        Log::info($request->user_id ?? '');
+        $test = User::find($request->user_id);
+        Log::info($test);
+
+        $user = User::find($request->user_id);
+        $salaryReport = $salaryData;
+        $month = $request->monthx ?? '';
+        $year = $request->yearx ?? '';
+
+        $pdf = PDF::loadView('reports.salary_slip_pdf', compact('salaryReport', 'user', 'month', 'year'));
+        return $pdf->stream('salary_slip.pdf');
+    }
+
 }
