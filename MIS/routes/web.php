@@ -191,7 +191,7 @@ Route::middleware(['auth', 'restrict.employee'])->group(function () {
     Route::patch('/dashboard/attendance', [AttendanceController::class, 'mark'])->name('attendance.mark');
 });
 
-//petti cash routes
+//petty cash routes
 Route::middleware(['auth', 'restrict.employee'])->group(function () {
     Route::get('/dashboard/petty-cash',[PettyCashController::class, 'index'])->name('page.pettyCash');
     Route::post('/dashboard/petty-cash', [PettyCashController::class, 'store'])->name('pettyCash.store');
@@ -209,6 +209,7 @@ Route::middleware(['auth', 'restrict.employee'])->group(function () {
     Route::delete('/dashboard/expense/list', [MonthlyExpensesListController::class, 'destroy'])->name('title.destroy');
 });
 
+//salary routes
 Route::middleware(['auth', 'restrict.employee'])->group(function () {
     Route::get('/dashboard/salary',[ReportsController::class, 'SalaryIndex'])->name('page.salary');
 

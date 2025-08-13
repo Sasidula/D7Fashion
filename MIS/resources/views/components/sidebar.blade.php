@@ -113,7 +113,7 @@
         <x-sidebar-link href="{{ url('/dashboard/petty-cash') }}" label="Petty Cash" icon="wallet" :active="$currentPage === 'petty-cash'" />
         @if($isAdminOrManager)
         <x-sidebar-link href="{{ url('/dashboard/accounts') }}" label="Accounts" icon="credit-card" :active="$currentPage === 'accounts'" />
-        <x-sidebar-link href="{{ url('/dashboard/salary') }}" label="Salary" icon="credit-card" :active="$currentPage === 'salary'" />
+        <x-sidebar-link href="{{ url('/dashboard/salary') }}" label="Salary" icon="clarity-dollar-bill-line" :active="$currentPage === 'salary'" />
         <x-sidebar-link href="{{ url('/dashboard/reports') }}" label="Reports" icon="bar-chart-3" :active="$currentPage === 'reports'" />
         <x-sidebar-link href="{{ url('/dashboard/settings') }}" label="Settings" icon="clarity-settings-line" :active="$currentPage === 'settings'" />
         @endif

@@ -23,6 +23,9 @@
         @case('clarity-settings-line')
             <x-clarity-settings-line class="w-5 h-5 mr-3" />
             @break
+        @case('clarity-dollar-bill-line')
+            <x-clarity-dollar-bill-line class="w-5 h-5 mr-3" />
+            @break
     @endswitch
     {{ $label }}
 </a>
