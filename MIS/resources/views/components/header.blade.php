@@ -74,7 +74,7 @@
                     Create User
                 </a>
                 @endif
-                <form method="POST" action="{{ route('logout') }}">
+                <form id="logout-form" method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit"
                             class="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100">
@@ -82,6 +82,13 @@
                         Logout
                     </button>
                 </form>
+
+                <script>
+                    document.getElementById('logout-form').addEventListener('submit', function () {
+                        // Remove sidebarOpen from localStorage if it exists
+                        localStorage.removeItem('sidebarOpen');
+                    });
+                </script>
             </div>
         </div>
     </div>
