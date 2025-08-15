@@ -1,11 +1,11 @@
 <x-app-layout>
     <div x-data="{ scrollY: 0, showForm: false }"
          x-init="() => {
-         window.addEventListener('scroll', () => {
-             scrollY = window.scrollY;
-             showForm = scrollY > 50;
-         });
-     }"
+             window.addEventListener('scroll', () => {
+                 scrollY = window.scrollY;
+                 showForm = scrollY > 50;
+             });
+         }"
          class="min-h-screen bg-cover bg-center relative overflow-y-auto"
          style="background-image: url('https://images.unsplash.com/photo-1718184021018-d2158af6b321?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')"
     >
@@ -47,13 +47,34 @@
                     <h2 class="text-2xl font-semibold text-[#0f2360] mb-6">Login to your account</h2>
 
                     <!-- Session Status -->
-                    <x-auth-session-status class="mb-4" :status="session('status')" />
+                    @if (session('status'))
+                        <x-auth-session-status class="mb-4" :status="session('status')" />
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                // Scroll smoothly to the bottom of the page
+                                window.scrollTo({
+                                    top: document.body.scrollHeight,
+                                    behavior: 'smooth'
+                                });
+                            });
+                        </script>
+                    @endif
 
                     <!-- Validation Errors -->
                     @if ($errors->any())
-                        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+                        <div id="error-message" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
                             {{ implode(', ', $errors->all()) }}
                         </div>
+
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                // Scroll smoothly to the bottom of the page
+                                window.scrollTo({
+                                    top: document.body.scrollHeight,
+                                    behavior: 'smooth'
+                                });
+                            });
+                        </script>
                     @endif
 
                     <form method="POST" action="{{ route('login') }}">
@@ -101,7 +122,10 @@
                             <a
                                 x-data=""
                                 x-on:click.prevent="$dispatch('open-modal', 'reset-password')"
-                            ><u>Reset Password</u></a>
+                                class="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors duration-200"
+                            >
+                                Reset Password
+                            </a>
 
                             <x-modal name="reset-password" focusable>
                                 @include('auth.forgot-password')

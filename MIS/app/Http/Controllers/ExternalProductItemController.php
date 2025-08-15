@@ -17,7 +17,6 @@ class ExternalProductItemController extends Controller
         $validator = Validator::make($request->all(), [
             'external_product_id' => 'required|exists:external_products,id',
             'quantity' => 'required|integer|min:1',
-            'created_by' => 'required|exists:users,id',
         ]);
 
         if ($validator->fails()) {
@@ -28,7 +27,7 @@ class ExternalProductItemController extends Controller
             ExternalProductItem::create([
                 'external_product_id' => $request->external_product_id,
                 'status' => 'available',
-                'created_by' => $request->created_by,
+                'created_by' => auth()->user()->id,
             ]);
         }
 
@@ -56,7 +55,7 @@ class ExternalProductItemController extends Controller
         $count = $items->count();
 
         if ($count < $validated['quantity']) {
-            return redirect()->route('external-products.manage')->withErrors([
+            return redirect()->route('products.manage')->withErrors([
                 'quantity' => "Only $count $targetStatus item(s) can be " . ($validated['action'] === 'delete' ? 'deleted' : 'restored') . ".",
             ])->withInput();
         }

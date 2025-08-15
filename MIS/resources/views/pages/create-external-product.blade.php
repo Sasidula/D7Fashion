@@ -27,22 +27,28 @@
             <!-- Page content wrapper -->
             <div class="flex-1 overflow-y-auto transition-all duration-300 ease-in-out">
                 <main class="p-6">
+                    @if (session('success'))
+                        <div class="mb-4 text-green-600 bg-green-100 border border-green-300 rounded p-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 10000)">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+                    @if ($errors->any())
+                        <div class="mb-4 text-red-600 bg-red-100 border border-red-300 rounded p-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 10000)">
+                            <ul class="list-disc list-inside">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                     <div
                         x-data="ExternalProductFormhandler()"
                         class="bg-white rounded-lg shadow-md p-6"
                     >
                         <h1 class="text-2xl font-bold mb-6 text-[#0f2360]">External Product</h1>
-
-                        <!-- Success Message -->
-                        @if(session('success'))
-                            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6 flex items-center">
-                                <x-lucide-check class="w-5 h-5 mr-2" />
-                                <span>{{ session('success') }}</span>
-                            </div>
-                        @endif
-
                         <!-- Form -->
-                        <form method="POST" action="{{ route('ExternalProducts.store') }}" @submit="handleSubmit">
+                        <form method="POST" action="{{ route('ExternalProducts.store') }}" >
+                            @method('POST')
                             @csrf
                             <div class="max-w-2xl mx-auto">
                                 <div class="gap-6">
@@ -53,6 +59,7 @@
                                             type="text"
                                             id="name"
                                             name="name"
+                                            required
                                             x-model="formData.name"
                                             :class="{ 'border-red-500': errors.name }"
                                             class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
@@ -60,6 +67,39 @@
                                         <p x-show="errors.name" class="mt-1 text-sm text-red-500" x-text="errors.name"></p>
                                     </div>
                                 </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                    <!-- Bought Price -->
+                                    <div>
+                                        <label for="bought_price" class="block text-sm font-medium text-gray-700 mb-1">Bought Price (Rs)</label>
+                                        <input
+                                            type="text"
+                                            id="bought_price"
+                                            name="bought_price"
+                                            required
+                                            x-model="formData.bought_price"
+                                            :class="{ 'border-red-500': errors.bought_price }"
+                                            class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
+                                        />
+                                        <p x-show="errors.bought_price" class="mt-1 text-sm text-red-500" x-text="errors.bought_price"></p>
+                                    </div>
+
+                                    <!-- Sold Price -->
+                                    <div>
+                                        <label for="sold_price" class="block text-sm font-medium text-gray-700 mb-1">Sold Price (Rs)</label>
+                                        <input
+                                            type="text"
+                                            id="sold_price"
+                                            name="sold_price"
+                                            required
+                                            x-model="formData.sold_price"
+                                            :class="{ 'border-red-500': errors.sold_price }"
+                                            class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
+                                        />
+                                        <p x-show="errors.sold_price" class="mt-1 text-sm text-red-500" x-text="errors.sold_price"></p>
+                                    </div>
+                                </div>
+
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
 
                                     <!-- SKU Code -->
@@ -98,36 +138,6 @@
                                             class="w-full border border-gray-300 rounded-md p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
                                             rows="3"
                                         ></textarea>
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                                    <!-- Bought Price -->
-                                    <div>
-                                        <label for="bought_price" class="block text-sm font-medium text-gray-700 mb-1">Bought Price (Rs)</label>
-                                        <input
-                                            type="text"
-                                            id="bought_price"
-                                            name="bought_price"
-                                            x-model="formData.bought_price"
-                                            :class="{ 'border-red-500': errors.bought_price }"
-                                            class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
-                                        />
-                                        <p x-show="errors.bought_price" class="mt-1 text-sm text-red-500" x-text="errors.bought_price"></p>
-                                    </div>
-
-                                    <!-- Sold Price -->
-                                    <div>
-                                        <label for="sold_price" class="block text-sm font-medium text-gray-700 mb-1">Sold Price (Rs)</label>
-                                        <input
-                                            type="text"
-                                            id="sold_price"
-                                            name="sold_price"
-                                            x-model="formData.sold_price"
-                                            :class="{ 'border-red-500': errors.sold_price }"
-                                            class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
-                                        />
-                                        <p x-show="errors.sold_price" class="mt-1 text-sm text-red-500" x-text="errors.sold_price"></p>
                                     </div>
                                 </div>
 

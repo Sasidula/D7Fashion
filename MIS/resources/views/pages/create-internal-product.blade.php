@@ -27,6 +27,20 @@
             <!-- Page content wrapper -->
             <div class="flex-1 overflow-y-auto transition-all duration-300 ease-in-out">
                 <main class="p-6">
+                    @if (session('success'))
+                        <div class="mb-4 text-green-600 bg-green-100 border border-green-300 rounded p-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 10000)">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+                    @if ($errors->any())
+                        <div class="mb-4 text-red-600 bg-red-100 border border-red-300 rounded p-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 10000)">
+                            <ul class="list-disc list-inside">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                     <div
                         x-data="createInternalProductHandler()"
                         class="bg-white rounded-lg shadow-md p-6"
@@ -44,7 +58,8 @@
                         </div>
 
                         <!-- Form -->
-                        <form method="POST" action="{{ route('InternalProducts.store') }}" @submit="handleSubmit">
+                        <form method="POST" action="{{ route('InternalProducts.store') }}" >
+                            @method('POST')
                             @csrf
                             <div class="max-w-2xl mx-auto">
                                 <div class="gap-6">
@@ -55,6 +70,7 @@
                                             type="text"
                                             id="name"
                                             name="name"
+                                            required
                                             x-model="formData.name"
                                             class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
                                             :class="{ 'border-red-500': errors.name, 'border-gray-300': !errors.name }"
@@ -69,6 +85,7 @@
                                         <input
                                             type="text"
                                             id="price"
+                                            required
                                             name="price"
                                             x-model="formData.price"
                                             class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"

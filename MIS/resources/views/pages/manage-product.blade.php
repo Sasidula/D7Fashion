@@ -114,14 +114,14 @@
             </div>
 
             <!-- Product Modal -->
-            <x-modal name="Edit-Product" :show="$errors->any() || session('status')" :scrollable="true" focusable>
+            <x-modal name="Edit-Product" :scrollable="true" focusable>
                 <div class="bg-white rounded-lg shadow-lg w-full max-w-3xl mx-4 overflow-hidden">
                     <div class="max-h-[90vh] overflow-y-auto rounded-lg scrollbar-thin">
                         <div class="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10">
                             <button x-on:click="$dispatch('close')" class="text-gray-600 hover:text-gray-900">
                                 <x-lucide-arrow-left class="w-6 h-6" />
                             </button>
-                            <h2 class="text-lg font-semibold text-gray-800">Edit Internal Product</h2>
+                            <h2 class="text-lg font-semibold text-gray-800" x-text="activeTab === 'Internal' ? 'Edit Internal Product' : 'Edit External Product'"></h2>
                             <div class="w-6"></div>
                         </div>
                         @if (session('status'))

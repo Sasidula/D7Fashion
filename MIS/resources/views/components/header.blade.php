@@ -22,8 +22,8 @@
             </svg>
         </button>
 
-        <!-- Logo & Title -->
-        <div class="flex items-center space-x-3">
+        <!-- Logo & Title (Clickable) -->
+        <a href="{{ url('/dashboard/home') }}" class="flex items-center space-x-3">
             <!-- Logo Image -->
             <img src="{{ asset('images/logo.png') }}" alt="Logo"
                  class="w-10 h-10 rounded-full shadow-md" />
@@ -33,8 +33,12 @@
                 <span class="bg-clip-text text-transparent bg-gradient-to-r from-[#fd9c0a] to-[#ff6b00]">D7</span>
                 <span class="text-white">Fashion</span>
             </div>
-        </div>
-
+        </a>
+        <style>
+            a:hover {
+                opacity: 0.9;
+            }
+        </style>
 
     </div>
 

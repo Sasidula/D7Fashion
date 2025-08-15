@@ -42,16 +42,6 @@ Route::get('/popup/{view}', function ($view) {
 })->middleware('auth', 'restrict.employee'); // ✅ Protect with auth
 
 
-/* Dashboard route with auth and restrict.employee middleware
-Route::get('/dashboard/{page?}', function ($page = 'home') {
-    if (!view()->exists("pages.$page")) {
-        abort(404);
-    }
-
-    return view('dashboard', ['page' => $page]);
-})->middleware(['auth', 'restrict.employee'])->name('dashboard');
-*/
-
 // =================== DASHBOARD ROUTE =================== //
 Route::middleware(['auth', 'restrict.employee'])->group(function () {
 
@@ -68,7 +58,7 @@ Route::middleware(['auth', 'restrict.employee'])->group(function () {
 });
 
 // Authenticated user profile routes
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'restrict.employee'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -149,12 +139,12 @@ Route::middleware(['auth', 'restrict.employee'])->group(function () {
     //update Internal products
     Route::patch('/dashboard/manage-product/internal/update', [InternalProductController::class, 'update'])->name('internalProducts.update');
     Route::patch('/dashboard/manage-product/internal/adjust', [InternalProductItemController::class, 'adjustStock'])->name('internalProducts.adjust');
-    Route::delete('/dashboard/manage-product/internal', [InternalProductItemController::class, 'softDeleteMaterial'])->name('internalProducts.softDelete');
+    Route::delete('/dashboard/manage-product/internal', [InternalProductItemController::class, 'softDelete'])->name('internalProducts.softDelete');
 
     //update External products
     Route::patch('/dashboard/manage-product/external/update', [ExternalProductController::class, 'update'])->name('externalProducts.update');
     Route::patch('/dashboard/manage-product/external/adjust', [ExternalProductItemController::class, 'adjustStock'])->name('externalProducts.adjust');
-    Route::delete('/dashboard/manage-product/external', [ExternalProductItemController::class, 'softDeleteMaterial'])->name('externalProducts.softDelete');
+    Route::delete('/dashboard/manage-product/external', [ExternalProductItemController::class, 'softDeleteExternalProduct'])->name('externalProducts.softDelete');
 });
 
 //Material Assignment routes
@@ -217,6 +207,7 @@ Route::middleware(['auth', 'restrict.employee'])->group(function () {
     Route::post('/dashboard/salary/print',[ReportsController::class, 'salaryPrint'])->name('salary.print');
 });
 
+//reports routes
 Route::middleware(['auth', 'restrict.employee'])->group(function () {
     Route::get('/dashboard/reports',[ReportsController::class, 'index'])->name('page.reports');
 
@@ -238,5 +229,17 @@ Route::middleware(['auth', 'restrict.employee'])->group(function () {
     Route::post('/dashboard/settings/Internal-product/sold', [SettingController::class, 'destroySoldInternalProduct'])->name('page.settings.internalProduct.sold');
     Route::post('/dashboard/settings/external-product/sold', [SettingController::class, 'destroySoldExternalProduct'])->name('page.settings.externalProduct.sold');
 });
+
 // Load additional auth routes (login, register, reset, etc.)
 require __DIR__.'/auth.php';
+
+
+/* Dashboard route with auth and restrict.employee middleware
+Route::get('/dashboard/{page?}', function ($page = 'home') {
+    if (!view()->exists("pages.$page")) {
+        abort(404);
+    }
+
+    return view('dashboard', ['page' => $page]);
+})->middleware(['auth', 'restrict.employee'])->name('dashboard');
+*/

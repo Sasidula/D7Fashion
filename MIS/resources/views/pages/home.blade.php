@@ -52,15 +52,63 @@
                                     </ul>
                                 </div>
                             @endif
-                            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                                <div class="p-6 bg-white border-b border-gray-200">
-                                    You're logged in!
-                                    @if($isAdminOrManager)
-                                        <br>
-                                        Hello, {{ Auth::user()->name }} you are an Manager
-                                    @endif
+
+                                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                                    <div class="p-6 bg-white border-b border-gray-200 text-center">
+
+                                        You're logged in!
+                                        @if($isAdminOrManager)
+                                            <br>
+                                            Hello, {{ Auth::user()->name }} you are an Admin/Manager.
+                                        @else
+                                            <br>
+                                            Hello, {{ Auth::user()->name }} you are an Employee.
+                                        @endif
+
+{{--                                        <div class="relative w-full h-20 flex items-center justify-center">--}}
+
+{{--                                            <!-- Moving GIF -->--}}
+{{--                                            <img src="{{ asset('images/19-d97ba53a-unscreen.gif') }}"--}}
+{{--                                                 alt="Moving GIF"--}}
+{{--                                                 class="absolute h-12 animate-moveGif z-10"--}}
+{{--                                                 style="top: 50%; transform: translateY(-50%) rotate(180deg);">--}}
+{{--                                        </div>--}}
+
+                                        {{-- GIF Carousel --}}
+                                        <div class="mt-8 relative w-64 h-40 mx-auto overflow-hidden rounded-lg shadow-lg">
+                                            <div id="gif-carousel" class="flex transition-transform duration-700 ease-in-out">
+                                                <img src="{{ asset('images/sell.gif') }}" class="w-64 h-40 object-cover flex-shrink-0" alt="GIF 1">
+                                                <img src="{{ asset('images/sale.gif') }}" class="w-64 h-40 object-cover flex-shrink-0" alt="GIF 2">
+                                                <img src="{{ asset('images/tshirt.gif') }}" class="w-64 h-40 object-cover flex-shrink-0" alt="GIF 3">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+
+                                <script>
+                                    document.addEventListener("DOMContentLoaded", function () {
+                                        const carousel = document.getElementById('gif-carousel');
+                                        const slides = carousel.children.length;
+                                        let index = 0;
+
+                                        setInterval(() => {
+                                            index = (index + 1) % slides;
+                                            carousel.style.transform = `translateX(-${index * 100}%)`;
+                                        }, 5000); // 5 seconds
+                                    });
+                                </script>
+
+                                <style>
+                                    @keyframes moveGif {
+                                        0% { left: 0; transform: rotate(180deg); }
+                                        100% { left: calc(100% - 48px); transform: rotate(180deg); } /* 48px = GIF width approx */
+                                    }
+
+                                    .animate-moveGif {
+                                        animation: moveGif 5s linear infinite;
+                                    }
+                                </style>
+
                         </div>
                     </div>
                 </main>

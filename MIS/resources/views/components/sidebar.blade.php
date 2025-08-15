@@ -3,7 +3,7 @@
 @php
     use Illuminate\Support\Facades\Auth;
 
-    $productPages = ['add-internal-product', 'add-external-product', 'manage-product'];
+    $productPages = ['add-internal-product', 'add-external-product', 'manage-product','create-internal-product', 'create-external-product'];
     $materialsPages = ['manage-stocks', 'create-stocks', 'add-stocks'];
     $employeePages = ['add-employee', 'manage-employee', 'add-bonus-deduction'];
     $assignmentPages = ['add-assignment', 'accept-assignment', 'manage-assignment'];

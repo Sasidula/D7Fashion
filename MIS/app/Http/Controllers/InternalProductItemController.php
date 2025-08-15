@@ -62,7 +62,7 @@ class InternalProductItemController extends Controller
         $count = $items->count();
 
         if ($count < $quantity) {
-            return redirect()->route('internal-products.items.manage')->withErrors([
+            return redirect()->route('products.manage')->withErrors([
                 'quantity' => "Only $count $targetStatus item(s) can be " . ($action === 'delete' ? 'deleted' : 'restored') . ".",
             ])->withInput();
         }
