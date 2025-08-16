@@ -492,9 +492,6 @@ class ReportsController extends Controller
             'year'  => $year,
         ];
 
-        Log::info("hi");
-        Log::info($netProfit);
-
         // -----------------------------------------------------
 
         // Grouping for existing data
@@ -553,9 +550,6 @@ class ReportsController extends Controller
 
     public function salaryIndex(Request $request)
     {
-        Log::info("test index salary");
-        Log::info($request->user_id);
-
         $request->validate([
             'user_id' => 'nullable|exists:users,id',
         ]);
@@ -625,14 +619,6 @@ class ReportsController extends Controller
                 ];
             });
         }
-
-        Log::info($salaryData);
-        Log::info($request->user_id);
-        $test = User::where('id', $request->user_id)->get();
-        Log::info($test);
-        Log::info($request->monthx);
-        Log::info($request->yearx);
-        Log::info($employees);
 
         return view('pages.salary', [
             'employees'    => $employees,
@@ -713,13 +699,6 @@ class ReportsController extends Controller
             });
         }
 
-        Log::info($salaryData);
-        Log::info($request->monthx ?? '');
-        Log::info($request->yearx) ?? '';
-        Log::info($request->user_id ?? '');
-        $test = User::find($request->user_id);
-        Log::info($test);
-
         $user = User::find($request->user_id);
         $salaryReport = $salaryData;
         $month = $request->monthx ?? '';
@@ -798,14 +777,6 @@ class ReportsController extends Controller
                 ];
             });
         }
-
-        Log::info("printing");
-        Log::info($salaryData);
-        Log::info($request->monthx ?? '');
-        Log::info($request->yearx) ?? '';
-        Log::info($request->user_id ?? '');
-        $test = User::find($request->user_id);
-        Log::info($test);
 
         $user = User::find($request->user_id);
         $salaryReport = $salaryData;
