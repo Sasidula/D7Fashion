@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
+use App\Models\ExternalProductItem;
+use App\Models\MaterialStock;
 use App\Models\MonthlyExpensesRecord;
 use App\Models\PettyCash;
 use App\Models\ProductSale;
@@ -103,6 +105,54 @@ class ReportsController extends Controller
             ];
         });
 
+        // ---------------- PROFIT CALCULATION ----------------
+
+        $totalSalaries = $salaryData->sum('calculatedSalary');
+
+        // For Total Income
+        $salesRevenue = ProductSale::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->get()
+            ->sum('price');
+
+        // For Total Expenses
+        $MaterialCosts = MaterialStock::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->with('material')
+            ->get()
+            ->sum(fn($s) => $s->material->price);
+        $ExternalCosts = ExternalProductItem::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->with('external_product')
+            ->get()
+            ->sum(fn($s) => $s->external_product->bought_price);
+
+
+        // Expenses & Incomes
+        $totalExpense = $Expense->clone()->where('type','expense')->sum('amount');
+        $totalIncome  = $Expense->clone()->where('type','income')->sum('amount');
+
+        $pettyExpense = $PettyCash->clone()->where('type','expense')->sum('amount');
+        $pettyIncome  = $PettyCash->clone()->where('type','income')->sum('amount');
+
+        // Net Profit = (Sales + incomes) - (salaries + expenses + material costs)
+        $totalProfit = ($salesRevenue + $pettyIncome + $totalIncome)
+            - ($totalSalaries + $MaterialCosts + $ExternalCosts + $pettyExpense + $totalExpense);
+
+        $netProfit = [
+            'profit' => round($totalProfit, 2),
+            'sales'  => round($salesRevenue, 2),
+            'incomes' => round($pettyIncome + $totalIncome, 2),
+            'expenses' => round($totalExpense + $pettyExpense, 2),
+            'salaries' => round($totalSalaries, 2),
+            'material_costs' => round($MaterialCosts, 2),
+            'external_costs' => round($ExternalCosts, 2),
+            'month' => $month,
+            'year'  => $year,
+        ];
+
+        // -----------------------------------------------------
+
         // Grouping for existing data
         $attendanceGrouped = $Attendance->get()->groupBy('user_id');
         $salesGrouped = $Sales->get()->groupBy('product_sales_id');
@@ -113,6 +163,7 @@ class ReportsController extends Controller
             'pettyCash'    => $PettyCash->get(),
             'sales'        => $salesGrouped,
             'salaryReport' => $salaryData,
+            'netProfit'    => $netProfit,
             'month'        => $request->monthx ?? '',
             'year'         => $request->yearx ?? '',
         ]);
@@ -121,7 +172,7 @@ class ReportsController extends Controller
     public function exportPdf(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'reportType' => 'required|in:expenses,employee,petty,sales,salary',
+            'reportType' => 'required|in:main,expenses,employee,petty,sales,salary',
         ]);
 
         if ($validator->fails()) {
@@ -214,6 +265,55 @@ class ReportsController extends Controller
             ];
         });
 
+        // ---------------- PROFIT CALCULATION ----------------
+
+        $totalSalaries = $salaryData->sum('calculatedSalary');
+
+        // For Total Income
+        $salesRevenue = ProductSale::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->get()
+            ->sum('price');
+
+        // For Total Expenses
+        $MaterialCosts = MaterialStock::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->with('material')
+            ->get()
+            ->sum(fn($s) => $s->material->price);
+        $ExternalCosts = ExternalProductItem::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->with('external_product')
+            ->get()
+            ->sum(fn($s) => $s->external_product->bought_price);
+
+
+        // Expenses & Incomes
+        $totalExpense = $Expense->clone()->where('type','expense')->sum('amount');
+        $totalIncome  = $Expense->clone()->where('type','income')->sum('amount');
+
+        $pettyExpense = $PettyCash->clone()->where('type','expense')->sum('amount');
+        $pettyIncome  = $PettyCash->clone()->where('type','income')->sum('amount');
+
+        // Net Profit = (Sales + incomes) - (salaries + expenses + material costs)
+        $totalProfit = ($salesRevenue + $pettyIncome + $totalIncome)
+            - ($totalSalaries + $MaterialCosts + $ExternalCosts + $pettyExpense + $totalExpense);
+
+        $netProfit = [
+            'profit' => round($totalProfit, 2),
+            'sales'  => round($salesRevenue, 2),
+            'incomes' => round($pettyIncome + $totalIncome, 2),
+            'expenses' => round($totalExpense + $pettyExpense, 2),
+            'salaries' => round($totalSalaries, 2),
+            'material_costs' => round($MaterialCosts, 2),
+            'external_costs' => round($ExternalCosts, 2),
+            'month' => $month,
+            'year'  => $year,
+        ];
+
+        // -----------------------------------------------------
+
+
         // Grouping for existing data
         $attendanceGrouped = $Attendance->get()->groupBy('user_id');
         $attendance = $attendanceGrouped;
@@ -227,6 +327,9 @@ class ReportsController extends Controller
         $yeary = $request->yearx ?? '';
 
         switch ($type) {
+            case 'main':
+                $pdf = PDF::loadView('reports.monthly_report_pdf', compact('netProfit', 'monthy', 'yeary'));
+                return $pdf->download('monthly_report.pdf');
             case 'expenses':
                 $pdf = PDF::loadView('reports.monthly_expenses_pdf', compact('expenses', 'monthy', 'yeary'));
                 return $pdf->download('monthly_expenses_report.pdf');
@@ -250,7 +353,7 @@ class ReportsController extends Controller
     public function PrintPdf(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'reportType' => 'required|in:expenses,employee,petty,sales,salary',
+            'reportType' => 'required|in:main,expenses,employee,petty,sales,salary',
         ]);
 
         if ($validator->fails()) {
@@ -343,6 +446,57 @@ class ReportsController extends Controller
             ];
         });
 
+        // ---------------- PROFIT CALCULATION ----------------
+
+        $totalSalaries = $salaryData->sum('calculatedSalary');
+
+        // For Total Income
+        $salesRevenue = ProductSale::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->get()
+            ->sum('price');
+
+        // For Total Expenses
+        $MaterialCosts = MaterialStock::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->with('material')
+            ->get()
+            ->sum(fn($s) => $s->material->price);
+        $ExternalCosts = ExternalProductItem::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->with('external_product')
+            ->get()
+            ->sum(fn($s) => $s->external_product->bought_price);
+
+
+        // Expenses & Incomes
+        $totalExpense = $Expense->clone()->where('type','expense')->sum('amount');
+        $totalIncome  = $Expense->clone()->where('type','income')->sum('amount');
+
+        $pettyExpense = $PettyCash->clone()->where('type','expense')->sum('amount');
+        $pettyIncome  = $PettyCash->clone()->where('type','income')->sum('amount');
+
+        // Net Profit = (Sales + incomes) - (salaries + expenses + material costs)
+        $totalProfit = ($salesRevenue + $pettyIncome + $totalIncome)
+            - ($totalSalaries + $MaterialCosts + $ExternalCosts + $pettyExpense + $totalExpense);
+
+        $netProfit = [
+            'profit' => round($totalProfit, 2),
+            'sales'  => round($salesRevenue, 2),
+            'incomes' => round($pettyIncome + $totalIncome, 2),
+            'expenses' => round($totalExpense + $pettyExpense, 2),
+            'salaries' => round($totalSalaries, 2),
+            'material_costs' => round($MaterialCosts, 2),
+            'external_costs' => round($ExternalCosts, 2),
+            'month' => $month,
+            'year'  => $year,
+        ];
+
+        Log::info("hi");
+        Log::info($netProfit);
+
+        // -----------------------------------------------------
+
         // Grouping for existing data
         $attendanceGrouped = $Attendance->get()->groupBy('user_id');
         $attendance = $attendanceGrouped;
@@ -356,6 +510,9 @@ class ReportsController extends Controller
         $yeary = $request->yearx ?? '';
 
         switch ($type) {
+            case 'main':
+                $pdf = PDF::loadView('reports.monthly_report_pdf', compact('netProfit', 'monthy', 'yeary'));
+                return $pdf->stream('monthly_report.pdf');
             case 'expenses':
                 $pdf = PDF::loadView('reports.monthly_expenses_pdf', compact('expenses', 'monthy', 'yeary'));
                 return $pdf->stream('monthly_expenses_report.pdf');

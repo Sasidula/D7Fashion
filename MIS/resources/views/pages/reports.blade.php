@@ -43,9 +43,10 @@
                     @endif
                     <div
                         x-data="{
-                            selectedReportType: 'sales',
+                            selectedReportType: 'main',
                             showFilters: false,
                             reportTypes: [
+                                { id: 'main', name: 'Monthly Report' },
                                 { id: 'sales', name: 'Sales Report' },
                                 { id: 'expenses', name: 'Expenses Report' },
                                 { id: 'petty', name: 'Petty Cash Report' },
@@ -136,7 +137,7 @@
                             x-cloak
                         >
                             <h2 class="text-lg font-medium mb-4">Report Filters</h2>
-                            <form method="GET" action="{{ url('/monthly-expenses/report') }}" class="space-y-4">
+                            <form method="GET" action="{{ route('page.reports') }}" class="space-y-4">
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <!-- Year -->
                                     <div>
@@ -196,6 +197,57 @@
 
                         <!-- Report Data -->
                         <div class="bg-white border rounded-lg overflow-hidden">
+
+                            <div class="mt-8 mb-8" x-show="selectedReportType === 'main'">
+                                <h3 class="text-lg font-medium mb-4 px-6 pt-4">Net Profit Report</h3>
+
+                                <div class="bg-white shadow-lg rounded-lg border border-gray-200 p-6 max-w-3xl mx-auto">
+                                    <!-- Header -->
+                                    <div class="flex justify-between items-center border-b pb-3 mb-4">
+                                        <div>
+                                            <h4 class="text-xl font-semibold text-gray-800">Business Performance</h4>
+                                            <p class="text-sm text-gray-500">
+                                                Report for
+                                                {{ \Carbon\Carbon::create(null, $netProfit['month'])->format('F') }} {{ $netProfit['year'] }}
+                                            </p>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-sm text-gray-500">Generated On: {{ now()->format('d M Y') }}</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Profit/Expense Details -->
+                                    <div class="grid grid-cols-3 gap-4 text-sm">
+                                        <div>
+                                            <p><span class="font-medium text-red-700">Gross Income:</span></p>
+                                            <p class="ml-4"><span class="font-medium text-gray-700">Total Sales:</span> Rs. {{ number_format($netProfit['sales'], 2) }}</p>
+                                            <p class="ml-4"><span class="font-medium text-gray-700">Other Incomes(petty cash/expenses):</span> Rs. {{ number_format($netProfit['incomes'], 2) }}</p>
+                                            <p><span class="font-medium text-green-600">Total:</span> {{ number_format($netProfit['incomes']+$netProfit['sales'], 2) }}</p>
+                                        </div>
+                                        <div>
+                                            <p><span class="font-medium text-red-700">Production Costs:</span></p>
+                                            <p class="ml-4"><span class="font-medium text-gray-700">Material Costs:</span> Rs. {{ number_format($netProfit['material_costs'], 2) }}</p>
+                                            <p class="ml-4"><span class="font-medium text-gray-700">External Costs:</span> Rs. {{ number_format($netProfit['external_costs'], 2) }}</p>
+                                            <p><span class="font-medium text-green-600">Total:</span> {{ number_format($netProfit['material_costs']+$netProfit['external_costs'], 2) }}</p>
+                                        </div>
+                                        <div>
+                                            <p><span class="font-medium text-red-700">Operating Costs:</span></p>
+                                            <p class="ml-4"><span class="font-medium text-gray-700">Salaries:</span> Rs. {{ number_format($netProfit['salaries'], 2) }}</p>
+                                            <p class="ml-4"><span class="font-medium text-gray-700">Expenses(petty cash/expenses):</span> Rs. {{ number_format($netProfit['expenses'], 2) }}</p>
+                                            <p><span class="font-medium text-green-600">Total:</span> {{ number_format($netProfit['material_costs']+$netProfit['external_costs'], 2) }}</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Final Net Profit -->
+                                    <div class="mt-4 border-t pt-3">
+                                        <p class="mt-2 text-lg font-bold {{ $netProfit['profit'] >= 0 ? 'text-green-600' : 'text-red-600' }}">
+                                            Net Profit: Rs. {{ number_format($netProfit['profit'], 2) }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+
                             <div x-show="selectedReportType === 'sales'">
                                 <h3 class="text-lg font-medium mb-4 px-6 pt-4">
                                     Sales Report:

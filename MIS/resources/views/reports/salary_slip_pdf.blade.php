@@ -12,9 +12,21 @@
     </style>
 </head>
 <body>
+
+<!-- Report Header -->
+
+
 @foreach($salaryReport as $row)
     <div class="slip-container">
         <div class="header">
+            <div >
+                <div class="logo-title">
+                    {{--        <img src="{{ public_path('images/logo.png') }}" alt="Logo">--}}
+                    <div class="title">
+                        <span style="color:#fd9c0a;">D7</span> <span style="color:#000;">Fashion</span>
+                    </div>
+                </div>
+            </div>
             <div>
                 <h2>{{ $row['name'] }}</h2>
                 <small>Salary Slip - {{ $row['month'] }}</small>

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('monthly_expenses_records', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('expense_id')->constrained('monthly_expenses_list')->onDelete('cascade');
+            $table->foreignId('expense_id')->constrained('monthly_expenses_lists')->onDelete('cascade');
             $table->decimal('amount', 10, 2);
             $table->enum('type', ['income', 'expense']);
             $table->text('description')->nullable();
