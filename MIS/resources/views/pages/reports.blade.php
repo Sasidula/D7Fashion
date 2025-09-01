@@ -43,7 +43,7 @@
                     @endif
                     <div
                         x-data="{
-                            selectedReportType: 'main',
+                            selectedReportType: sessionStorage.getItem('selectedReportType') || 'main',
                             showFilters: false,
                             reportTypes: [
                                 { id: 'main', name: 'Monthly Report' },
@@ -55,6 +55,7 @@
                             ],
                             year: '{{ $year }}',
                             month: '{{ $month }}',
+                            userId: '{{ $user_id }}',
                             monthName() {
                                 if (this.month) {
                                     return new Date(2000, this.month - 1, 1).toLocaleString('default', { month: 'long' });
@@ -63,6 +64,18 @@
                             },
                             toggleFilters() {
                                 this.showFilters = !this.showFilters;
+                            },
+                            init() {
+                                // Load from localStorage on page load
+                                const saved = localStorage.getItem('selectedReportType');
+                                if (saved) {
+                                    this.selectedReportType = saved;
+                                }
+
+                                // Keep saving when user changes report type
+                                this.$watch('selectedReportType', (value) => {
+                                    localStorage.setItem('selectedReportType', value);
+                                });
                             }
                         }"
                         class="bg-white rounded-lg shadow-md p-6"
@@ -78,6 +91,7 @@
                                     <input type="hidden" name="reportType" x-model="selectedReportType">
                                     <input type="hidden" name="year" x-model="year">
                                     <input type="hidden" name="month" x-model="month">
+                                    <input type="hidden" name="user_id" x-model="userId">
 
                                     <button
                                         type="submit"
@@ -94,6 +108,7 @@
                                     <input type="hidden" name="reportType" x-model="selectedReportType">
                                     <input type="hidden" name="year" x-model="year">
                                     <input type="hidden" name="month" x-model="month">
+                                    <input type="hidden" name="user_id" x-model="userId">
 
                                     <button
                                         type="submit"
@@ -195,6 +210,50 @@
                             </form>
                         </div>
 
+                        <div x-show="selectedReportType === 'salary'">
+                            <div class="bg-white border rounded-lg overflow-hidden mb-4">
+                                <div class="mt-2 mb-2">
+                                    <form action="{{ route('page.reports') }}" method="GET" class="flex flex-row items-center gap-4">
+                                        <input type="hidden" name="yearx" x-model="year">
+                                        <input type="hidden" name="monthx" x-model="month">
+
+                                        <!-- Employee Select -->
+                                        <div class="flex items-center ml-2">
+                                            <label for="user_id" class="text-sm font-medium text-gray-700 mr-2">
+                                                Select Employee :
+                                            </label>
+                                            <select
+                                                id="user_id"
+                                                name="user_id"
+                                                class="inline-flex border w-full rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
+                                                required
+                                            >
+                                                <option value="">-- Select an employee --</option>
+                                                @foreach($employee as $employees)
+                                                    <option value="{{ $employees->id }}" {{ old('user_id') == $employees->id ? 'selected' : '' }}>
+                                                        {{ $employees->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <!-- Export Button -->
+                                        <button
+                                            type="submit"
+                                            class="inline-flex items-center px-4 py-2 bg-[#fd9c0a] border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-[#e08c09] focus:outline-none"
+                                        >
+                                            <x-lucide-search class="w-4 h-4 mr-2" />
+                                            Search
+                                        </button>
+                                        <a href="{{ url('/dashboard/reports') }}"
+                                           class="px-4 py-2 bg-[#fd9c0a] border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-[#e08c09] focus:outline-none">
+                                            Reset
+                                        </a>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Report Data -->
                         <div class="bg-white border rounded-lg overflow-hidden">
 
@@ -278,12 +337,12 @@
                                         </tr>
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
-                                        @foreach($sales as $saleId => $items)
+                                        @foreach($sales->sortByDesc(fn($items) => $items->first()->sale->created_at) as $saleId => $items)
                                             <tr class="bg-gray-200 font-bold">
                                                 <td colspan="3">
                                                     Sale ID: {{ $saleId }} |
                                                     Total Price: Rs. {{ $items->first()->sale->price }}
-                                                    Created At: {{$items->first()->sale->created_at}}
+                                                    Created At: {{ $items->first()->sale->created_at }}
                                                 </td>
                                             </tr>
 
@@ -294,13 +353,13 @@
                                                             ? $item->internalProductItem->internalProduct->name
                                                             : $item->externalProductItem->external_product->name }}
                                                     </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap $item->product_type === 'internal' ? 'text-green-600' : 'text-red-600 ">
-                                                        {{ $item->product_type}} product
+                                                    <td class="px-6 py-4 whitespace-nowrap {{ $item->product_type === 'internal' ? 'text-green-600' : 'text-red-600' }}">
+                                                        {{ ucfirst($item->product_type) }} product
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap">
                                                         Rs. {{ $item->product_type === 'internal'
-                                                            ? $item->internalProductItem->internalProduct->price
-                                                            : $item->externalProductItem->external_product->sold_price }}
+                                                        ? $item->internalProductItem->internalProduct->price
+                                                        : $item->externalProductItem->external_product->sold_price }}
                                                     </td>
                                                 </tr>
                                             @endforeach

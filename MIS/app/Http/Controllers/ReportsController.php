@@ -24,6 +24,8 @@ class ReportsController extends Controller
         $month = $request->monthx ?? now()->month;
         $year  = $request->yearx ?? now()->year;
 
+        $employees = User::all();
+
         // Existing queries
         $Expense = MonthlyExpensesRecord::with(['expense' => fn($q) => $q->withTrashed()]);
         $Attendance = Attendance::with(['user' => fn($q) => $q->withTrashed()]);
@@ -35,14 +37,20 @@ class ReportsController extends Controller
         ]);
 
         // Load users with attendances and bonusAdjustments for the given month and year
-        $users = User::with([
+        $query = User::with([
             'attendances' => function($q) use ($month, $year) {
                 $q->whereMonth('date', $month)->whereYear('date', $year);
             },
             'bonusAdjustments' => function($q) use ($month, $year) {
                 $q->whereMonth('created_at', $month)->whereYear('created_at', $year);
             }
-        ])->withTrashed()->get();
+        ])->withTrashed();
+
+        if ($request->filled('user_id')) {
+            $query->where('id', $request->user_id);
+        }
+
+        $users = $query->get();
 
         if ($request->filled('monthx')) {
             $Expense = $Expense->whereMonth('created_at', $request->monthx);
@@ -164,6 +172,8 @@ class ReportsController extends Controller
             'sales'        => $salesGrouped,
             'salaryReport' => $salaryData,
             'netProfit'    => $netProfit,
+            'employee'     => $employees,
+            'user_id'      => $request->user_id ?? '',
             'month'        => $request->monthx ?? '',
             'year'         => $request->yearx ?? '',
         ]);
@@ -195,14 +205,20 @@ class ReportsController extends Controller
         ]);
 
         // Load users with attendances and bonusAdjustments for the given month and year
-        $users = User::with([
+        $query = User::with([
             'attendances' => function($q) use ($month, $year) {
                 $q->whereMonth('date', $month)->whereYear('date', $year);
             },
             'bonusAdjustments' => function($q) use ($month, $year) {
                 $q->whereMonth('created_at', $month)->whereYear('created_at', $year);
             }
-        ])->withTrashed()->get();
+        ])->withTrashed();
+
+        if ($request->filled('user_id')) {
+            $query->where('id', $request->user_id);
+        }
+
+        $users = $query->get();
 
         if ($request->filled('monthx')) {
             $Expense = $Expense->whereMonth('created_at', $request->monthx);
@@ -376,14 +392,20 @@ class ReportsController extends Controller
         ]);
 
         // Load users with attendances and bonusAdjustments for the given month and year
-        $users = User::with([
+        $query = User::with([
             'attendances' => function($q) use ($month, $year) {
                 $q->whereMonth('date', $month)->whereYear('date', $year);
             },
             'bonusAdjustments' => function($q) use ($month, $year) {
                 $q->whereMonth('created_at', $month)->whereYear('created_at', $year);
             }
-        ])->withTrashed()->get();
+        ])->withTrashed();
+
+        if ($request->filled('user_id')) {
+            $query->where('id', $request->user_id);
+        }
+
+        $users = $query->get();
 
         if ($request->filled('monthx')) {
             $Expense = $Expense->whereMonth('created_at', $request->monthx);

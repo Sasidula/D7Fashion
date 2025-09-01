@@ -102,7 +102,7 @@
                                     class="inline-flex items-center px-4 py-2 bg-[#fd9c0a] border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-[#e08c09] focus:outline-none"
                                 >
                                     <x-lucide-search class="w-4 h-4 mr-2" />
-                                    Export
+                                    Select
                                 </button>
                             </form>
                         </div>
