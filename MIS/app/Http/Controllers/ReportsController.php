@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Attendance;
 use App\Models\ExternalProductItem;
 use App\Models\MaterialStock;
+use App\Models\MonthlyExpensesList;
 use App\Models\MonthlyExpensesRecord;
 use App\Models\PettyCash;
 use App\Models\ProductSale;
@@ -27,7 +28,17 @@ class ReportsController extends Controller
         $employees = User::all();
 
         // Existing queries
+        $ExpenseList = MonthlyExpensesList::withTrashed()->get();
         $Expense = MonthlyExpensesRecord::with(['expense' => fn($q) => $q->withTrashed()]);
+
+        if ($request->filled('expense_type')) {
+            $Expense = $Expense->where('type', $request->expense_type);
+        }
+
+        if ($request->filled('expense_id')) {
+            $Expense = $Expense->where('expense_id', $request->expense_id);
+        }
+
         $Attendance = Attendance::with(['user' => fn($q) => $q->withTrashed()]);
         $PettyCash = PettyCash::query();
         $Sales = ProductSalesItem::with([
@@ -64,6 +75,13 @@ class ReportsController extends Controller
             $Attendance = $Attendance->whereYear('created_at', $request->yearx);
             $PettyCash = $PettyCash->whereYear('created_at', $request->yearx);
             $Sales = $Sales->whereYear('created_at', $request->yearx);
+        }
+
+        if ($request->filled('dayx')) {
+            $Expense = $Expense->whereDay('created_at', $request->dayx);
+            $Attendance = $Attendance->whereDay('created_at', $request->dayx);
+            $PettyCash = $PettyCash->whereDay('created_at', $request->dayx);
+            $Sales = $Sales->whereDay('created_at', $request->dayx);
         }
 
         // Salary calculation including bonus adjustments
@@ -135,6 +153,27 @@ class ReportsController extends Controller
             ->get()
             ->sum(fn($s) => $s->external_product->bought_price);
 
+        $records = MonthlyExpensesRecord::with(['expense' => fn($q) => $q->withTrashed()])
+            ->get()
+            ->groupBy('type');
+
+        // Expenses grouped by title with total
+        $expenseRecord = $records->get('expense', collect())
+            ->groupBy('expense.title')
+            ->map(fn($items) => [
+                'title' => $items->first()->expense->title,
+                'total' => $items->sum('amount'),
+            ])
+            ->values();
+
+        // Incomes grouped by title with total
+        $incomeRecord = $records->get('income', collect())
+            ->groupBy('expense.title')
+            ->map(fn($items) => [
+                'title' => $items->first()->expense->title,
+                'total' => $items->sum('amount'),
+            ])
+            ->values();
 
         // Expenses & Incomes
         $totalExpense = $Expense->clone()->where('type','expense')->sum('amount');
@@ -152,9 +191,15 @@ class ReportsController extends Controller
             'sales'  => round($salesRevenue, 2),
             'incomes' => round($pettyIncome + $totalIncome, 2),
             'expenses' => round($totalExpense + $pettyExpense, 2),
+            'petty_expenses' => round($pettyExpense, 2),
+            'petty_incomes' => round($pettyIncome, 2),
+            'total_incomes' => round($totalIncome, 2),
+            'total_expenses' => round($totalExpense, 2),
             'salaries' => round($totalSalaries, 2),
             'material_costs' => round($MaterialCosts, 2),
             'external_costs' => round($ExternalCosts, 2),
+            'expense_record' => $expenseRecord,
+            'income_record' => $incomeRecord,
             'month' => $month,
             'year'  => $year,
         ];
@@ -163,7 +208,11 @@ class ReportsController extends Controller
 
         // Grouping for existing data
         $attendanceGrouped = $Attendance->get()->groupBy('user_id');
-        $salesGrouped = $Sales->get()->groupBy('product_sales_id');
+        $salesGrouped = $Sales
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy('product_sales_id');
+
 
         return view('pages.reports', [
             'expenses'     => $Expense->get(),
@@ -172,10 +221,14 @@ class ReportsController extends Controller
             'sales'        => $salesGrouped,
             'salaryReport' => $salaryData,
             'netProfit'    => $netProfit,
+            'expenseList'  => $ExpenseList,
+            'expense_id'   => $request->expense_id ?? '',
+            'expense_type' => $request->expense_type ?? '',
             'employee'     => $employees,
             'user_id'      => $request->user_id ?? '',
             'month'        => $request->monthx ?? '',
             'year'         => $request->yearx ?? '',
+            'day'          => $request->dayx ?? '',
         ]);
     }
 
@@ -196,6 +249,15 @@ class ReportsController extends Controller
 
         // Existing queries
         $Expense = MonthlyExpensesRecord::with(['expense' => fn($q) => $q->withTrashed()]);
+
+        if ($request->filled('expense_type')) {
+            $Expense = $Expense->where('type', $request->expense_type);
+        }
+
+        if ($request->filled('expense_id')) {
+            $Expense = $Expense->where('expense_id', $request->expense_id);
+        }
+
         $Attendance = Attendance::with(['user' => fn($q) => $q->withTrashed()]);
         $PettyCash = PettyCash::query();
         $Sales = ProductSalesItem::with([
@@ -232,6 +294,13 @@ class ReportsController extends Controller
             $Attendance = $Attendance->whereYear('created_at', $request->yearx);
             $PettyCash = $PettyCash->whereYear('created_at', $request->yearx);
             $Sales = $Sales->whereYear('created_at', $request->yearx);
+        }
+
+        if ($request->filled('dayx')) {
+            $Expense = $Expense->whereDay('created_at', $request->dayx);
+            $Attendance = $Attendance->whereDay('created_at', $request->dayx);
+            $PettyCash = $PettyCash->whereDay('created_at', $request->dayx);
+            $Sales = $Sales->whereDay('created_at', $request->dayx);
         }
 
         // Salary calculation including bonus adjustments
@@ -303,6 +372,28 @@ class ReportsController extends Controller
             ->get()
             ->sum(fn($s) => $s->external_product->bought_price);
 
+        $records = MonthlyExpensesRecord::with(['expense' => fn($q) => $q->withTrashed()])
+            ->get()
+            ->groupBy('type');
+
+        // Expenses grouped by title with total
+        $expenseRecord = $records->get('expense', collect())
+            ->groupBy('expense.title')
+            ->map(fn($items) => [
+                'title' => $items->first()->expense->title,
+                'total' => $items->sum('amount'),
+            ])
+            ->values();
+
+        // Incomes grouped by title with total
+        $incomeRecord = $records->get('income', collect())
+            ->groupBy('expense.title')
+            ->map(fn($items) => [
+                'title' => $items->first()->expense->title,
+                'total' => $items->sum('amount'),
+            ])
+            ->values();
+
 
         // Expenses & Incomes
         $totalExpense = $Expense->clone()->where('type','expense')->sum('amount');
@@ -320,9 +411,15 @@ class ReportsController extends Controller
             'sales'  => round($salesRevenue, 2),
             'incomes' => round($pettyIncome + $totalIncome, 2),
             'expenses' => round($totalExpense + $pettyExpense, 2),
+            'petty_expenses' => round($pettyExpense, 2),
+            'petty_incomes' => round($pettyIncome, 2),
+            'total_incomes' => round($totalIncome, 2),
+            'total_expenses' => round($totalExpense, 2),
             'salaries' => round($totalSalaries, 2),
             'material_costs' => round($MaterialCosts, 2),
             'external_costs' => round($ExternalCosts, 2),
+            'expense_record' => $expenseRecord,
+            'income_record' => $incomeRecord,
             'month' => $month,
             'year'  => $year,
         ];
@@ -333,7 +430,10 @@ class ReportsController extends Controller
         // Grouping for existing data
         $attendanceGrouped = $Attendance->get()->groupBy('user_id');
         $attendance = $attendanceGrouped;
-        $salesGrouped = $Sales->get()->groupBy('product_sales_id');
+        $salesGrouped = $Sales
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy('product_sales_id');
         $sales = $salesGrouped;
         $expenses = $Expense->get();
         $pettyCash = $PettyCash->get();
@@ -383,6 +483,15 @@ class ReportsController extends Controller
 
         // Existing queries
         $Expense = MonthlyExpensesRecord::with(['expense' => fn($q) => $q->withTrashed()]);
+
+        if ($request->filled('expense_type')) {
+            $Expense = $Expense->where('type', $request->expense_type);
+        }
+
+        if ($request->filled('expense_id')) {
+            $Expense = $Expense->where('expense_id', $request->expense_id);
+        }
+
         $Attendance = Attendance::with(['user' => fn($q) => $q->withTrashed()]);
         $PettyCash = PettyCash::query();
         $Sales = ProductSalesItem::with([
@@ -419,6 +528,13 @@ class ReportsController extends Controller
             $Attendance = $Attendance->whereYear('created_at', $request->yearx);
             $PettyCash = $PettyCash->whereYear('created_at', $request->yearx);
             $Sales = $Sales->whereYear('created_at', $request->yearx);
+        }
+
+        if ($request->filled('dayx')){
+            $Expense = $Expense->whereDay('created_at', $request->dayx);
+            $Attendance = $Attendance->whereDay('created_at', $request->dayx);
+            $PettyCash = $PettyCash->whereDay('created_at', $request->dayx);
+            $Sales = $Sales->whereDay('created_at', $request->dayx);
         }
 
         // Salary calculation including bonus adjustments
@@ -490,6 +606,28 @@ class ReportsController extends Controller
             ->get()
             ->sum(fn($s) => $s->external_product->bought_price);
 
+        $records = MonthlyExpensesRecord::with(['expense' => fn($q) => $q->withTrashed()])
+            ->get()
+            ->groupBy('type');
+
+        // Expenses grouped by title with total
+        $expenseRecord = $records->get('expense', collect())
+            ->groupBy('expense.title')
+            ->map(fn($items) => [
+                'title' => $items->first()->expense->title,
+                'total' => $items->sum('amount'),
+            ])
+            ->values();
+
+        // Incomes grouped by title with total
+        $incomeRecord = $records->get('income', collect())
+            ->groupBy('expense.title')
+            ->map(fn($items) => [
+                'title' => $items->first()->expense->title,
+                'total' => $items->sum('amount'),
+            ])
+            ->values();
+
 
         // Expenses & Incomes
         $totalExpense = $Expense->clone()->where('type','expense')->sum('amount');
@@ -507,9 +645,15 @@ class ReportsController extends Controller
             'sales'  => round($salesRevenue, 2),
             'incomes' => round($pettyIncome + $totalIncome, 2),
             'expenses' => round($totalExpense + $pettyExpense, 2),
+            'petty_expenses' => round($pettyExpense, 2),
+            'petty_incomes' => round($pettyIncome, 2),
+            'total_incomes' => round($totalIncome, 2),
+            'total_expenses' => round($totalExpense, 2),
             'salaries' => round($totalSalaries, 2),
             'material_costs' => round($MaterialCosts, 2),
             'external_costs' => round($ExternalCosts, 2),
+            'expense_record' => $expenseRecord,
+            'income_record' => $incomeRecord,
             'month' => $month,
             'year'  => $year,
         ];
@@ -519,7 +663,10 @@ class ReportsController extends Controller
         // Grouping for existing data
         $attendanceGrouped = $Attendance->get()->groupBy('user_id');
         $attendance = $attendanceGrouped;
-        $salesGrouped = $Sales->get()->groupBy('product_sales_id');
+        $salesGrouped = $Sales
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy('product_sales_id');
         $sales = $salesGrouped;
         $expenses = $Expense->get();
         $pettyCash = $PettyCash->get();

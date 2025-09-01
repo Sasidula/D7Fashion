@@ -55,10 +55,14 @@
                             ],
                             year: '{{ $year }}',
                             month: '{{ $month }}',
+                            day: '{{ $day }}',
                             userId: '{{ $user_id }}',
+                            expensId: '{{ $expense_id }}',
+                            expenseType: '{{ $expense_type }}',
                             monthName() {
                                 if (this.month) {
-                                    return new Date(2000, this.month - 1, 1).toLocaleString('default', { month: 'long' });
+                                    return new Date(2000,
+                                     this.month - 1, 1).toLocaleString('default', { month: 'long' });
                                 }
                                 return '';
                             },
@@ -89,9 +93,15 @@
                                     @csrf
 
                                     <input type="hidden" name="reportType" x-model="selectedReportType">
-                                    <input type="hidden" name="year" x-model="year">
-                                    <input type="hidden" name="month" x-model="month">
+
+                                    <input type="hidden" name="yearx" x-model="year">
+                                    <input type="hidden" name="monthx" x-model="month">
+                                    <input type="hidden" name="dayx" x-model="day">
+
                                     <input type="hidden" name="user_id" x-model="userId">
+
+                                    <input type="hidden" name="expense_id" x-model="expensId">
+                                    <input type="hidden" name="expense_type" x-model="expenseType">
 
                                     <button
                                         type="submit"
@@ -106,9 +116,15 @@
                                     @csrf
 
                                     <input type="hidden" name="reportType" x-model="selectedReportType">
-                                    <input type="hidden" name="year" x-model="year">
-                                    <input type="hidden" name="month" x-model="month">
+
+                                    <input type="hidden" name="yearx" x-model="year">
+                                    <input type="hidden" name="monthx" x-model="month">
+                                    <input type="hidden" name="dayx" x-model="day">
+
                                     <input type="hidden" name="user_id" x-model="userId">
+
+                                    <input type="hidden" name="expense_id" x-model="expensId">
+                                    <input type="hidden" name="expense_type" x-model="expenseType">
 
                                     <button
                                         type="submit"
@@ -136,8 +152,9 @@
                                 <select
                                     id="reportType"
                                     x-model="selectedReportType"
-                                    class="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
+                                    class="block w-80 border border-gray-300 rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
                                 >
+                                    <option value="main">-- Select a Report Type --</option>
                                     <template x-for="type in reportTypes" :key="type.id">
                                         <option :value="type.id" x-text="type.name"></option>
                                     </template>
@@ -153,6 +170,12 @@
                         >
                             <h2 class="text-lg font-medium mb-4">Report Filters</h2>
                             <form method="GET" action="{{ route('page.reports') }}" class="space-y-4">
+
+                                <input type="hidden" name="user_id" x-model="userId">
+
+                                <input type="hidden" name="expense_id" x-model="expensId">
+                                <input type="hidden" name="expense_type" x-model="expenseType">
+
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <!-- Year -->
                                     <div>
@@ -193,6 +216,25 @@
                                             </select>
                                         </div>
                                     </div>
+
+                                    <div>
+                                        <label for="day" class="block text-sm font-medium text-gray-700 mb-1">
+                                            Day
+                                        </label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <x-lucide-calendar class="w-4 h-4 text-gray-400" />
+                                            </div>
+                                            <select name="dayx" id="dayx" class="block w-60 pl-10 border rounded-md">
+                                                <option value="">All</option>
+                                                @foreach(range(1, 31) as $d)
+                                                    <option value="{{ $d }}" >
+                                                        {{ $d }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- Buttons -->
@@ -210,12 +252,75 @@
                             </form>
                         </div>
 
+                        <div x-show="selectedReportType === 'expenses'">
+                            <div class="bg-white border rounded-lg overflow-hidden mb-4">
+                                <div class="mt-2 mb-2">
+                                    <form action="{{ route('page.reports') }}" method="GET" class="flex flex-row items-center gap-4">
+                                        <input type="hidden" name="yearx" x-model="year">
+                                        <input type="hidden" name="monthx" x-model="month">
+                                        <input type="hidden" name="dayx" x-model="day">
+
+                                        <input type="hidden" name="user_id" x-model="userId">
+
+                                        <!-- Title Select -->
+                                        <div class="flex items-center ml-2">
+                                            <label for="user_id" class="text-sm font-medium text-gray-700 mr-2">
+                                                Select Title :
+                                            </label>
+                                            <select
+                                                id="expense_id"
+                                                name="expense_id"
+                                                class="inline-flex border w-80 rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
+                                            >
+                                                <option value="">-- Select an Title --</option>
+                                                @foreach($expenseList as $expense)
+                                                    <option value="{{ $expense->id }}" {{ old('expense_id') == $expense->id ? 'selected' : '' }}>
+                                                        {{ $expense->title }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <!-- Type Select -->
+                                        <div class="flex items-center ml-2">
+                                            <label for="user_id" class="text-sm font-medium text-gray-700 mr-2">
+                                                Select Type :
+                                            </label>
+                                            <select
+                                                id="expense_type"
+                                                name="expense_type"
+                                                class="inline-flex border w-full rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
+                                            >
+                                                <option value="">-- Select an Type  --</option>
+                                                <option value="income">Income</option>
+                                                <option value="expense">Expense</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Export Button -->
+                                        <button
+                                            type="submit"
+                                            class="inline-flex items-center px-4 py-2 bg-[#fd9c0a] border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-[#e08c09] focus:outline-none"
+                                        >
+                                            <x-lucide-search class="w-4 h-4 mr-2" />
+                                            Search
+                                        </button>
+                                        <a href="{{ url('/dashboard/reports') }}"
+                                           class="px-4 py-2 bg-[#fd9c0a] border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-[#e08c09] focus:outline-none">
+                                            Reset
+                                        </a>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
                         <div x-show="selectedReportType === 'salary'">
                             <div class="bg-white border rounded-lg overflow-hidden mb-4">
                                 <div class="mt-2 mb-2">
                                     <form action="{{ route('page.reports') }}" method="GET" class="flex flex-row items-center gap-4">
                                         <input type="hidden" name="yearx" x-model="year">
                                         <input type="hidden" name="monthx" x-model="month">
+                                        <input type="hidden" name="dayx" x-model="day">
 
                                         <!-- Employee Select -->
                                         <div class="flex items-center ml-2">
@@ -226,7 +331,6 @@
                                                 id="user_id"
                                                 name="user_id"
                                                 class="inline-flex border w-full rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
-                                                required
                                             >
                                                 <option value="">-- Select an employee --</option>
                                                 @foreach($employee as $employees)
@@ -281,6 +385,11 @@
                                             <p><span class="font-medium text-red-700">Gross Income:</span></p>
                                             <p class="ml-4"><span class="font-medium text-gray-700">Total Sales:</span> Rs. {{ number_format($netProfit['sales'], 2) }}</p>
                                             <p class="ml-4"><span class="font-medium text-gray-700">Other Incomes(petty cash/expenses):</span> Rs. {{ number_format($netProfit['incomes'], 2) }}</p>
+                                            <p class="pl-8"><span class="font-medium text-gray-700">Total Petty Cash:</span> Rs. {{ number_format($netProfit['petty_incomes'], 2) }}</p>
+                                            <p class="pl-8"><span class="font-medium text-gray-700">Total Incomes:</span> Rs. {{ number_format($netProfit['total_incomes'], 2) }}</p>
+                                            @foreach($netProfit['income_record'] as $record)
+                                                <p class="ml-12">{{ $record['title'] }}: Rs. {{ number_format($record['total'], 2) }}</p>
+                                            @endforeach
                                             <p><span class="font-medium text-green-600">Total:</span> {{ number_format($netProfit['incomes']+$netProfit['sales'], 2) }}</p>
                                         </div>
                                         <div>
@@ -293,7 +402,12 @@
                                             <p><span class="font-medium text-red-700">Operating Costs:</span></p>
                                             <p class="ml-4"><span class="font-medium text-gray-700">Salaries:</span> Rs. {{ number_format($netProfit['salaries'], 2) }}</p>
                                             <p class="ml-4"><span class="font-medium text-gray-700">Expenses(petty cash/expenses):</span> Rs. {{ number_format($netProfit['expenses'], 2) }}</p>
-                                            <p><span class="font-medium text-green-600">Total:</span> {{ number_format($netProfit['material_costs']+$netProfit['external_costs'], 2) }}</p>
+                                            <p class="pl-8"><span class="font-medium text-gray-700">Total Petty Cash:</span> Rs. {{ number_format($netProfit['petty_expenses'], 2) }}</p>
+                                            <p class="pl-8"><span class="font-medium text-gray-700">Total Expenses:</span> Rs. {{ number_format($netProfit['total_expenses'], 2) }}</p>
+                                            @foreach($netProfit['expense_record'] as $record)
+                                                <p class="ml-12">{{ $record['title'] }}: Rs. {{ number_format($record['total'], 2) }}</p>
+                                            @endforeach
+                                            <p><span class="font-medium text-green-600">Total:</span> {{ number_format($netProfit['salaries']+$netProfit['expenses'], 2) }}</p>
                                         </div>
                                     </div>
 
@@ -337,30 +451,15 @@
                                         </tr>
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
-                                        @foreach($sales->sortByDesc(fn($items) => $items->first()->sale->created_at) as $saleId => $items)
+                                        @foreach($sales as $saleId => $items)
                                             <tr class="bg-gray-200 font-bold">
-                                                <td colspan="3">
-                                                    Sale ID: {{ $saleId }} |
-                                                    Total Price: Rs. {{ $items->first()->sale->price }}
-                                                    Created At: {{ $items->first()->sale->created_at }}
-                                                </td>
+                                                <td colspan="3"> Sale ID: {{ $saleId }} | Total Price: Rs. {{ $items->first()->sale->price }} Created At: {{$items->first()->sale->created_at}} </td>
                                             </tr>
-
                                             @foreach($items as $item)
                                                 <tr>
-                                                    <td class="px-6 py-4 whitespace-nowrap">
-                                                        {{ $item->product_type === 'internal'
-                                                            ? $item->internalProductItem->internalProduct->name
-                                                            : $item->externalProductItem->external_product->name }}
-                                                    </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap {{ $item->product_type === 'internal' ? 'text-green-600' : 'text-red-600' }}">
-                                                        {{ ucfirst($item->product_type) }} product
-                                                    </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap">
-                                                        Rs. {{ $item->product_type === 'internal'
-                                                        ? $item->internalProductItem->internalProduct->price
-                                                        : $item->externalProductItem->external_product->sold_price }}
-                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap"> {{ $item->product_type === 'internal' ? $item->internalProductItem->internalProduct->name : $item->externalProductItem->external_product->name }} </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap $item->product_type === 'internal' ? 'text-green-600' : 'text-red-600 "> {{ $item->product_type}} product </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap"> Rs. {{ $item->product_type === 'internal' ? $item->internalProductItem->internalProduct->price : $item->externalProductItem->external_product->sold_price }} </td>
                                                 </tr>
                                             @endforeach
                                         @endforeach
