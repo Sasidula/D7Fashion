@@ -46,12 +46,12 @@
         <!-- Gross Income -->
         <div class="col">
             <p class="danger">Gross Income:</p>
-            <p>Total Sales: Rs. {{ number_format($netProfit['sales'], 2) }}</p>
-            <p>Other Incomes: Rs. {{ number_format($netProfit['incomes'], 2) }}</p>
-            <p><span>Total Petty Cash:</span> Rs. {{ number_format($netProfit['petty_incomes'], 2) }}</p>
-            <p><span>Total Incomes:</span> Rs. {{ number_format($netProfit['total_incomes'], 2) }}</p>
+            <p style="margin-left: 10px;">Total Sales: Rs. {{ number_format($netProfit['sales'], 2) }}</p>
+            <p style="margin-left: 10px;">Other Incomes: Rs. {{ number_format($netProfit['incomes'], 2) }}</p>
+            <p style="margin-left: 20px;"><span>Total Petty Cash:</span> Rs. {{ number_format($netProfit['petty_incomes'], 2) }}</p>
+            <p style="margin-left: 20px;"><span>Total Incomes:</span> Rs. {{ number_format($netProfit['total_incomes'], 2) }}</p>
             @foreach($netProfit['income_record'] as $record)
-                <p>{{ $record['title'] }}: Rs. {{ number_format($record['total'], 2) }}</p>
+                <p  style="margin-left: 30px;">{{ $record['title'] }}: Rs. {{ number_format($record['total'], 2) }}</p>
             @endforeach
             <p class="highlight">Total: Rs. {{ number_format($netProfit['sales'] + $netProfit['incomes'], 2) }}</p>
         </div>
@@ -67,12 +67,12 @@
         <!-- Operating Costs -->
         <div class="col">
             <p class="danger">Operating Costs:</p>
-            <p>Salaries: Rs. {{ number_format($netProfit['salaries'], 2) }}</p>
-            <p>Expenses: Rs. {{ number_format($netProfit['expenses'], 2) }}</p>
-            <p><span>Total Petty Cash:</span> Rs. {{ number_format($netProfit['petty_expenses'], 2) }}</p>
-            <p><span>Total Expenses:</span> Rs. {{ number_format($netProfit['total_expenses'], 2) }}</p>
+            <p style="margin-left: 10px;">Salaries: Rs. {{ number_format($netProfit['salaries'], 2) }}</p>
+            <p style="margin-left: 10px;">Expenses: Rs. {{ number_format($netProfit['expenses'], 2) }}</p>
+            <p style="margin-left: 20px;"><span>Total Petty Cash:</span> Rs. {{ number_format($netProfit['petty_expenses'], 2) }}</p>
+            <p style="margin-left: 20px;"><span>Total Expenses:</span> Rs. {{ number_format($netProfit['total_expenses'], 2) }}</p>
             @foreach($netProfit['expense_record'] as $record)
-                <p>{{ $record['title'] }}: Rs. {{ number_format($record['total'], 2) }}</p>
+                <p style="margin-left: 30px;">{{ $record['title'] }}: Rs. {{ number_format($record['total'], 2) }}</p>
             @endforeach
             <p class="highlight">Total: Rs. {{ number_format($netProfit['salaries'] + $netProfit['expenses'], 2) }}</p>
         </div>

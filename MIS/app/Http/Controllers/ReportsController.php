@@ -14,6 +14,7 @@ use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -206,6 +207,60 @@ class ReportsController extends Controller
 
         // -----------------------------------------------------
 
+        // Purchase Report
+        // -----------------------------------------------------
+
+        // Materials
+        $materials = DB::table('material_stocks')
+            ->join('materials', 'material_stocks.material_id', '=', 'materials.id')
+            ->selectRaw("
+                DATE(material_stocks.created_at) as date,
+                materials.name as item_name,
+                COUNT(material_stocks.id) as quantity,
+                'material' as type,
+                SUM(materials.price) as total_price
+            ")
+            ->groupBy('date', 'materials.name');
+
+        // External Products
+        $externalProducts = DB::table('external_product_items')
+            ->join('external_products', 'external_product_items.external_product_id', '=', 'external_products.id')
+            ->selectRaw("
+                DATE(external_product_items.created_at) as date,
+                external_products.name as item_name,
+                COUNT(external_product_items.id) as quantity,
+                'external_item' as type,
+                SUM(external_products.bought_price) as total_price
+            ")
+            ->groupBy('date', 'external_products.name');
+
+        // Merge both queries with UNION
+        $purchases = $materials->unionAll($externalProducts);
+
+        // Wrap in subquery
+        $query = DB::table(DB::raw("({$purchases->toSql()}) as purchases"))
+            ->mergeBindings($materials) // merge bindings for Laravel
+            ->orderBy('date', 'desc');
+
+        // Apply filters
+        if ($request->monthx) {
+            $query->whereMonth('date', $request->monthx);
+        }
+
+        if ($request->yearx) {
+            $query->whereYear('date', $request->yearx);
+        }
+
+        if ($request->dayx) {
+            $query->whereDay('date', $request->dayx);
+        }
+
+        // Now execute
+        $purchases = $query->get();
+
+        // -----------------------------------------------------
+
+
         // Grouping for existing data
         $attendanceGrouped = $Attendance->get()->groupBy('user_id');
         $salesGrouped = $Sales
@@ -221,6 +276,7 @@ class ReportsController extends Controller
             'sales'        => $salesGrouped,
             'salaryReport' => $salaryData,
             'netProfit'    => $netProfit,
+            'purchases'    => $purchases,
             'expenseList'  => $ExpenseList,
             'expense_id'   => $request->expense_id ?? '',
             'expense_type' => $request->expense_type ?? '',
@@ -235,7 +291,7 @@ class ReportsController extends Controller
     public function exportPdf(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'reportType' => 'required|in:main,expenses,employee,petty,sales,salary',
+            'reportType' => 'required|in:main,expenses,employee,petty,sales,salary,purchase',
         ]);
 
         if ($validator->fails()) {
@@ -426,6 +482,59 @@ class ReportsController extends Controller
 
         // -----------------------------------------------------
 
+        // Purchase Report
+        // -----------------------------------------------------
+
+        // Materials
+        $materials = DB::table('material_stocks')
+            ->join('materials', 'material_stocks.material_id', '=', 'materials.id')
+            ->selectRaw("
+                DATE(material_stocks.created_at) as date,
+                materials.name as item_name,
+                COUNT(material_stocks.id) as quantity,
+                'material' as type,
+                SUM(materials.price) as total_price
+            ")
+            ->groupBy('date', 'materials.name');
+
+        // External Products
+        $externalProducts = DB::table('external_product_items')
+            ->join('external_products', 'external_product_items.external_product_id', '=', 'external_products.id')
+            ->selectRaw("
+                DATE(external_product_items.created_at) as date,
+                external_products.name as item_name,
+                COUNT(external_product_items.id) as quantity,
+                'external_item' as type,
+                SUM(external_products.bought_price) as total_price
+            ")
+            ->groupBy('date', 'external_products.name');
+
+        // Merge both queries with UNION
+        $purchases = $materials->unionAll($externalProducts);
+
+        // Wrap in subquery
+        $query = DB::table(DB::raw("({$purchases->toSql()}) as purchases"))
+            ->mergeBindings($materials) // merge bindings for Laravel
+            ->orderBy('date', 'desc');
+
+        // Apply filters
+        if ($request->monthx) {
+            $query->whereMonth('date', $request->monthx);
+        }
+
+        if ($request->yearx) {
+            $query->whereYear('date', $request->yearx);
+        }
+
+        if ($request->dayx) {
+            $query->whereDay('date', $request->dayx);
+        }
+
+        // Now execute
+        $purchases = $query->get();
+
+        // -----------------------------------------------------
+
 
         // Grouping for existing data
         $attendanceGrouped = $Attendance->get()->groupBy('user_id');
@@ -461,6 +570,9 @@ class ReportsController extends Controller
             case 'salary':
                 $pdf = PDF::loadView('reports.salary_pdf', compact('salaryReport', 'monthy', 'yeary'));
                 return $pdf->download('salary_report.pdf');
+            case 'purchase':
+                $pdf = PDF::loadView('reports.purchase_pdf', compact('purchases', 'monthy', 'yeary'));
+                return $pdf->download('purchase_report.pdf');
         }
 
         return redirect()->back()->with('error', 'Invalid report type.');
@@ -469,7 +581,7 @@ class ReportsController extends Controller
     public function PrintPdf(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'reportType' => 'required|in:main,expenses,employee,petty,sales,salary',
+            'reportType' => 'required|in:main,expenses,employee,petty,sales,salary,purchase',
         ]);
 
         if ($validator->fails()) {
@@ -660,6 +772,59 @@ class ReportsController extends Controller
 
         // -----------------------------------------------------
 
+        // Purchase Report
+        // -----------------------------------------------------
+
+        // Materials
+        $materials = DB::table('material_stocks')
+            ->join('materials', 'material_stocks.material_id', '=', 'materials.id')
+            ->selectRaw("
+                DATE(material_stocks.created_at) as date,
+                materials.name as item_name,
+                COUNT(material_stocks.id) as quantity,
+                'material' as type,
+                SUM(materials.price) as total_price
+            ")
+            ->groupBy('date', 'materials.name');
+
+        // External Products
+        $externalProducts = DB::table('external_product_items')
+            ->join('external_products', 'external_product_items.external_product_id', '=', 'external_products.id')
+            ->selectRaw("
+                DATE(external_product_items.created_at) as date,
+                external_products.name as item_name,
+                COUNT(external_product_items.id) as quantity,
+                'external_item' as type,
+                SUM(external_products.bought_price) as total_price
+            ")
+            ->groupBy('date', 'external_products.name');
+
+        // Merge both queries with UNION
+        $purchases = $materials->unionAll($externalProducts);
+
+        // Wrap in subquery
+        $query = DB::table(DB::raw("({$purchases->toSql()}) as purchases"))
+            ->mergeBindings($materials) // merge bindings for Laravel
+            ->orderBy('date', 'desc');
+
+        // Apply filters
+        if ($request->monthx) {
+            $query->whereMonth('date', $request->monthx);
+        }
+
+        if ($request->yearx) {
+            $query->whereYear('date', $request->yearx);
+        }
+
+        if ($request->dayx) {
+            $query->whereDay('date', $request->dayx);
+        }
+
+        // Now execute
+        $purchases = $query->get();
+
+        // -----------------------------------------------------
+
         // Grouping for existing data
         $attendanceGrouped = $Attendance->get()->groupBy('user_id');
         $attendance = $attendanceGrouped;
@@ -694,6 +859,9 @@ class ReportsController extends Controller
             case 'salary':
                 $pdf = PDF::loadView('reports.salary_pdf', compact('salaryReport', 'monthy', 'yeary'));
                 return $pdf->stream('salary_report.pdf');
+            case 'purchase':
+                $pdf = PDF::loadView('reports.purchase_pdf', compact('purchases', 'monthy', 'yeary'));
+                return $pdf->stream('purchase_report.pdf');
         }
 
         return redirect()->back()->with('error', 'Invalid report type.');

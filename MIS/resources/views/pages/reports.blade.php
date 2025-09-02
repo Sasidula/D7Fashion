@@ -51,7 +51,8 @@
                                 { id: 'expenses', name: 'Expenses Report' },
                                 { id: 'petty', name: 'Petty Cash Report' },
                                 { id: 'employee', name: 'Employee Performance' },
-                                { id: 'salary', name: 'Salary Report' }
+                                { id: 'salary', name: 'Salary Report' },
+                                { id: 'purchase', name: 'Purchases Report' }
                             ],
                             year: '{{ $year }}',
                             month: '{{ $month }}',
@@ -610,9 +611,9 @@
                                 </div>
                             </div>
 
-                            <div x-show="selectedReportType === 'salary'">
+                            <div x-show="selectedReportType === 'purchase'">
                                 <h3 class="text-lg font-medium mb-4 px-6 pt-4">
-                                    Salary Report:
+                                    Purchases Report:
                                     <template x-if="year || month">
                                         <span>
                                             <span x-text="year ? year : 'Current Year and Month'"></span>
@@ -626,35 +627,28 @@
                                 <table class="min-w-full divide-y divide-gray-200 table-auto">
                                     <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Month</th>
+                                        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Date</th>
                                         <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Name</th>
-                                        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Worked Hours</th>
                                         <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Type</th>
-                                        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Rate</th>
-                                        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Base Salary</th>
-                                        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Bonus Adds</th>
-                                        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Bonus Removes</th>
-                                        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Calculated Salary</th>
+                                        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Quantity</th>
+                                        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Price</th>
                                     </tr>
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-200">
-                                    @forelse ($salaryReport as $row)
+                                    @forelse ($purchases as $row)
                                         <tr>
-                                            <td class="px-6 py-4 text-sm text-gray-900">{{ $row['month'] }}</td>
-                                            <td class="px-6 py-4 text-sm text-gray-900">{{ $row['name'] }}</td>
-                                            <td class="px-6 py-4 text-sm text-gray-900">{{ $row['worked_hours'] }}</td>
-                                            <td class="px-6 py-4 text-sm text-gray-900">{{ $row['salary_type'] }}</td>
-                                            <td class="px-6 py-4 text-sm text-gray-900">Rs. {{ number_format($row['rate'], 2) }}</td>
-                                            <td class="px-6 py-4 text-sm text-gray-900">Rs. {{ number_format($row['base_salary'], 2) }}</td>
-                                            <td class="px-6 py-4 text-sm text-green-600 font-semibold">+ Rs. {{ number_format($row['bonus_adds'], 2) }}</td>
-                                            <td class="px-6 py-4 text-sm text-red-600 font-semibold">- Rs. {{ number_format($row['bonus_removes'], 2) }}</td>
-                                            <td class="px-6 py-4 text-sm font-semibold text-gray-900">Rs. {{ number_format($row['calculatedSalary'], 2) }}</td>
+                                            <td class="px-6 py-4 text-sm text-gray-900">{{ $row->date }}</td>
+                                            <td class="px-6 py-4 text-sm text-gray-900">{{ $row->item_name }}</td>
+                                            <td class="px-6 py-4 text-sm text-gray-900">{{ $row->type }}</td>
+                                            <td class="px-6 py-4 text-sm text-green-600 font-semibold">{{ $row->quantity }}</td>
+                                            <td class="px-6 py-4 text-sm text-red-600 font-semibold"> Rs. {{ number_format($row->total_price, 2) }}</td>
                                         </tr>
                                     @empty
                                         <tr>
                                             <td colspan="9" class="px-6 py-4 text-center text-sm text-gray-500">No records found</td>
                                         </tr>
                                     @endforelse
+
                                     </tbody>
                                 </table>
                             </div>
