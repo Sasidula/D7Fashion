@@ -10,6 +10,7 @@ use App\Models\MaterialStock;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class MaterialAssignmentController extends Controller
@@ -20,9 +21,36 @@ class MaterialAssignmentController extends Controller
      */
     public function index()
     {
+        $assignments = MaterialAssignment::query()
+            ->select(
+                'materials.id as material_id',
+                'materials.name',
+                'users.id as user_id',
+                'users.name as user_name',
+                DB::raw('COUNT(material_assignments.id) as assignment_count')
+            )
+            ->join('material_stocks', 'material_assignments.material_stock_id', '=', 'material_stocks.id')
+            ->join('materials', 'material_stocks.material_id', '=', 'materials.id')
+            ->join('users', 'material_assignments.user_id', '=', 'users.id')
+            ->where('material_assignments.status', 'incomplete')
+            ->groupBy('materials.id', 'materials.name', 'users.id', 'users.name') // ✅ fix
+            ->get();
+
+        $fullAssignments = MaterialAssignment::where('material_assignments.status', 'incomplete')
+            ->count();
+
+        $products = InternalProduct::all();
+
         $employees = User::where('role', 'employee')->get();
 
-        return view('pages.accept-assignment', compact('employees'));
+        $availableProducts = InternalProduct::withCount(['items as available_count' => function ($query) {
+            $query->where('status', 'available');
+        }])->get();
+
+        Log::info('assignments:-');
+        Log::info($assignments);
+
+        return view('pages.accept-assignment', compact(['employees', 'assignments', 'fullAssignments', 'products', 'availableProducts']));
     }
 
 
@@ -245,13 +273,15 @@ class MaterialAssignmentController extends Controller
             'material_id' => 'required|exists:materials,id',
             'user_id' => 'required|exists:users,id',
             'internal_product_id' => 'required|exists:internal_products,id',
-            'quantity' => 'required|integer|min:1',
+            'assignment_quantity' => 'required|integer|min:1',
+            'product_quantity' => 'required|integer|min:1',
         ]);
 
         $materialId = $validated['material_id'];
         $userId = $validated['user_id'];
         $internalProductId = $validated['internal_product_id'];
-        $quantity = $validated['quantity'];
+        $assignmentQuantity = $validated['assignment_quantity'];
+        $productQuantity = $validated['product_quantity'];
 
         $assignments = MaterialAssignment::query()
             ->select('material_assignments.*', 'materials.name as material_name')
@@ -260,35 +290,45 @@ class MaterialAssignmentController extends Controller
             ->where('material_assignments.status', 'incomplete')
             ->where('material_assignments.user_id', $userId)
             ->where('material_stocks.material_id', $materialId)
-            ->limit($quantity)
+            ->limit($assignmentQuantity)
             ->get();
 
-        $count = $assignments->count();
+//        $count = $assignments->count();
 
-        if ($count < $quantity) {
-            return redirect()->route('page.assignments.accept')->withErrors([
-                'quantity' => "Only $count incomplete assignment(s) can be marked as complete.",
-            ])->withInput();
-        }
+//        if ($count < $quantity) {
+//            return redirect()->route('page.assignments.accept')->withErrors([
+//                'quantity' => "Only $count incomplete assignment(s) can be marked as complete.",
+//            ])->withInput();
+//        }
 
-        DB::transaction(function () use ($assignments, $internalProductId) {
+        DB::transaction(function () use ($assignments, $productQuantity, $internalProductId) {
+
+            //Log::info('Assignments: ' . json_encode($assignments->toArray()));
             foreach ($assignments as $assignment) {
                 $assignment->update([
                     'status' => 'complete',
                 ]);
+            }
+            //Log::info('Assignment updated: ' . json_encode($assignments->toArray()));
 
-                InternalProductItem::create([
+            //Log::info('Product quantity: ' . $productQuantity);
+
+            for ($i = 0; $i < $productQuantity; $i++) {
+                $internalProductItem = InternalProductItem::create([
                     'internal_product_id' => $internalProductId,
                     'assignment_id' => $assignment->id,
                     'use' => 'reviewing',
                     'status' => 'available',
                     'created_by' => $assignment->user_id,
                 ]);
+
+                //Log::info('Created InternalProductItem:', $internalProductItem->toArray());
             }
+
         });
 
         return redirect()->route('page.assignments.accept')
-            ->with('success', "$quantity incomplete assignment(s) marked as complete and added as internal product items.");
+            ->with('success', "$assignmentQuantity incomplete assignment(s) marked as complete and added $productQuantity number of product(s) as internal product items.");
     }
 
 

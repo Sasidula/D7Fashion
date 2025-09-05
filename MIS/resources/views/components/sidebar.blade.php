@@ -83,7 +83,7 @@
                 <x-lucide-chevron-down :class="{ 'rotate-180': openProduct }" class="w-4 h-4 transition-transform" />
             </button>
             <div x-show="openProduct" x-cloak class="pl-8 mt-1 space-y-1">
-                <x-sidebar-sub-link href="{{ url('/dashboard/add-internal-product') }}" currentPage="{{ $currentPage }}" label="Add Internal Product" />
+                <!--<x-sidebar-sub-link href="{/{ url('/dashboard/add-internal-product') }}" currentPage="{/{ $currentPage }}" label="Add Internal Product" /> -->
                 <x-sidebar-sub-link href="{{ url('/dashboard/add-external-product') }}" currentPage="{{ $currentPage }}" label="Add External Product" />
                 <x-sidebar-sub-link href="{{ url('/dashboard/create-internal-product') }}" currentPage="{{ $currentPage }}" label="Create Internal Product" />
                 <x-sidebar-sub-link href="{{ url('/dashboard/create-external-product') }}" currentPage="{{ $currentPage }}" label="Create External Product" />

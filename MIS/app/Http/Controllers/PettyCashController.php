@@ -13,7 +13,8 @@ class PettyCashController extends Controller
      */
     public function index()
     {
-        $pettyCashes = PettyCash::all();
+        $pettyCashes = PettyCash::all()->sortByDesc('created_at');
+
         return view('pages.petty-cash', compact('pettyCashes'));
     }
 

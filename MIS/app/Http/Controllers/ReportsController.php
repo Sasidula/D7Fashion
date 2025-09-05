@@ -272,7 +272,7 @@ class ReportsController extends Controller
         return view('pages.reports', [
             'expenses'     => $Expense->get(),
             'attendance'   => $attendanceGrouped,
-            'pettyCash'    => $PettyCash->get(),
+            'pettyCash'    => $PettyCash->orderBy('created_at', 'desc')->get(),
             'sales'        => $salesGrouped,
             'salaryReport' => $salaryData,
             'netProfit'    => $netProfit,
@@ -545,7 +545,7 @@ class ReportsController extends Controller
             ->groupBy('product_sales_id');
         $sales = $salesGrouped;
         $expenses = $Expense->get();
-        $pettyCash = $PettyCash->get();
+        $pettyCash = $PettyCash->orderBy('created_at', 'desc')->get();
         $salaryReport = $salaryData;
 
         $monthy = $request->monthx ?? '';
@@ -834,7 +834,7 @@ class ReportsController extends Controller
             ->groupBy('product_sales_id');
         $sales = $salesGrouped;
         $expenses = $Expense->get();
-        $pettyCash = $PettyCash->get();
+        $pettyCash = $PettyCash->orderBy('created_at', 'desc')->get();
         $salaryReport = $salaryData;
 
         $monthy = $request->monthx ?? '';
