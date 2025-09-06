@@ -197,8 +197,8 @@
                                         @csrf
 
                                         <input type="hidden" name="user_id" x-model="user">
-                                        <input type="hidden" name="year" x-model="year">
-                                        <input type="hidden" name="month" x-model="month">
+                                        <input type="hidden" name="yearx" x-model="year">
+                                        <input type="hidden" name="monthx" x-model="month">
 
                                         <button
                                             type="submit"
@@ -213,8 +213,8 @@
                                         @csrf
 
                                         <input type="hidden" name="user_id" x-model="user">
-                                        <input type="hidden" name="year" x-model="year">
-                                        <input type="hidden" name="month" x-model="month">
+                                        <input type="hidden" name="yearx" x-model="year">
+                                        <input type="hidden" name="monthx" x-model="month">
 
                                         <button
                                             type="submit"

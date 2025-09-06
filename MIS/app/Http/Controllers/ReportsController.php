@@ -40,8 +40,7 @@ class ReportsController extends Controller
             $Expense = $Expense->where('expense_id', $request->expense_id);
         }
 
-        $Attendance = Attendance::with(['user' => fn($q) => $q->withTrashed()])
-            ->get();
+        $Attendance = Attendance::with(['user' => fn($q) => $q->withTrashed()]);
 
         $PettyCash = PettyCash::query();
         $Sales = ProductSalesItem::with([
@@ -86,6 +85,8 @@ class ReportsController extends Controller
             $PettyCash = $PettyCash->whereDay('created_at', $request->dayx);
             $Sales = $Sales->whereDay('created_at', $request->dayx);
         }
+
+        $Attendance = $Attendance->get();
 
         // Salary calculation including bonus adjustments
         $salaryData = $users->map(function($user) use ($month) {
@@ -335,8 +336,7 @@ class ReportsController extends Controller
             $Expense = $Expense->where('expense_id', $request->expense_id);
         }
 
-        $Attendance = Attendance::with(['user' => fn($q) => $q->withTrashed()])
-            ->get();
+        $Attendance = Attendance::with(['user' => fn($q) => $q->withTrashed()]);
 
         $PettyCash = PettyCash::query();
         $Sales = ProductSalesItem::with([
@@ -370,7 +370,7 @@ class ReportsController extends Controller
 
         if ($request->filled('yearx')) {
             $Expense = $Expense->whereYear('created_at', $request->yearx);
-            $Attendance = $Attendance->whereYear('created_at', $request->yearx);
+            $Attendance = $Attendance->whereYear('date', $request->yearx);
             $PettyCash = $PettyCash->whereYear('created_at', $request->yearx);
             $Sales = $Sales->whereYear('created_at', $request->yearx);
         }
@@ -381,6 +381,8 @@ class ReportsController extends Controller
             $PettyCash = $PettyCash->whereDay('created_at', $request->dayx);
             $Sales = $Sales->whereDay('created_at', $request->dayx);
         }
+
+        $Attendance = $Attendance->get();
 
         // Salary calculation including bonus adjustments
         $salaryData = $users->map(function($user) use ($month) {
@@ -644,8 +646,7 @@ class ReportsController extends Controller
             $Expense = $Expense->where('expense_id', $request->expense_id);
         }
 
-        $Attendance = Attendance::with(['user' => fn($q) => $q->withTrashed()])
-            ->get();
+        $Attendance = Attendance::with(['user' => fn($q) => $q->withTrashed()]);
 
         $PettyCash = PettyCash::query();
         $Sales = ProductSalesItem::with([
@@ -679,7 +680,7 @@ class ReportsController extends Controller
 
         if ($request->filled('yearx')) {
             $Expense = $Expense->whereYear('created_at', $request->yearx);
-            $Attendance = $Attendance->whereYear('created_at', $request->yearx);
+            $Attendance = $Attendance->whereYear('date', $request->yearx);
             $PettyCash = $PettyCash->whereYear('created_at', $request->yearx);
             $Sales = $Sales->whereYear('created_at', $request->yearx);
         }
@@ -690,6 +691,8 @@ class ReportsController extends Controller
             $PettyCash = $PettyCash->whereDay('created_at', $request->dayx);
             $Sales = $Sales->whereDay('created_at', $request->dayx);
         }
+
+        $Attendance = $Attendance->get();
 
         // Salary calculation including bonus adjustments
         $salaryData = $users->map(function($user) use ($month) {
@@ -1061,6 +1064,8 @@ class ReportsController extends Controller
 
         $salaryData = collect();
 
+        $attendanceGrouped = collect();
+
         if($request->filled('user_id')) {
             // Load users with attendances and bonusAdjustments for the given month and year
             $users = User::with([
@@ -1072,8 +1077,30 @@ class ReportsController extends Controller
                 }
             ])->where('id', $request->user_id)->withTrashed()->get();
 
+            //attendance list
+            $Attendance = Attendance::with(['user' => fn($q) => $q->withTrashed()])
+                ->where('user_id', $request->user_id)
+                ->whereMonth('date', $month)
+                ->whereYear('date', $year)
+                ->get();
+
+            $attendanceGrouped = $Attendance->groupBy('user_id')->map(function ($attendances) {
+                return $attendances->map(function ($attendance) {
+                    // If checkout exists and is after checkin
+                    if ($attendance->check_in && $attendance->check_out) {
+                        $checkIn = Carbon::parse($attendance->check_in);
+                        $checkOut = Carbon::parse($attendance->check_out);
+
+                        $attendance->hours_worked = round($checkOut->diffInMinutes($checkIn,true) / 60,2);
+                    } else {
+                        $attendance->hours_worked = 0;
+                    }
+                    return $attendance;
+                });
+            });
+
             // Salary calculation including bonus adjustments
-            $salaryData = $users->map(function($user) use ($month) {
+            $salaryData = $users->map(function($user) use ($month, $year) {
                 $workedHours = 0;
 
                 foreach ($user->attendances as $att) {
@@ -1107,6 +1134,7 @@ class ReportsController extends Controller
                 $finalSalary = $baseSalary + $totalBonusAdds - $totalBonusRemoves;
 
                 return [
+                    'year'             => $year,
                     'month'            => Carbon::create(null, $month)->format('F'),
                     'name'             => $user->name,
                     'worked_hours'     => round($workedHours, 2),
@@ -1122,10 +1150,11 @@ class ReportsController extends Controller
 
         $user = User::find($request->user_id);
         $salaryReport = $salaryData;
+        $attendances = $attendanceGrouped;
         $month = $request->monthx ?? '';
         $year = $request->yearx ?? '';
 
-        $pdf = PDF::loadView('reports.salary_slip_pdf', compact('salaryReport', 'user', 'month', 'year'));
+        $pdf = PDF::loadView('reports.salary_slip_pdf', compact('salaryReport', 'user', 'month', 'year', 'attendances' ));
         return $pdf->download('salary_slip.pdf');
     }
 
@@ -1140,6 +1169,8 @@ class ReportsController extends Controller
 
         $salaryData = collect();
 
+        $attendanceGrouped = collect();
+
         if($request->filled('user_id')) {
             // Load users with attendances and bonusAdjustments for the given month and year
             $users = User::with([
@@ -1151,8 +1182,30 @@ class ReportsController extends Controller
                 }
             ])->where('id', $request->user_id)->withTrashed()->get();
 
+            //attendance list
+            $Attendance = Attendance::with(['user' => fn($q) => $q->withTrashed()])
+                ->where('user_id', $request->user_id)
+                ->whereMonth('date', $month)
+                ->whereYear('date', $year)
+                ->get();
+
+            $attendanceGrouped = $Attendance->groupBy('user_id')->map(function ($attendances) {
+                return $attendances->map(function ($attendance) {
+                    // If checkout exists and is after checkin
+                    if ($attendance->check_in && $attendance->check_out) {
+                        $checkIn = Carbon::parse($attendance->check_in);
+                        $checkOut = Carbon::parse($attendance->check_out);
+
+                        $attendance->hours_worked = round($checkOut->diffInMinutes($checkIn,true) / 60,2);
+                    } else {
+                        $attendance->hours_worked = 0;
+                    }
+                    return $attendance;
+                });
+            });
+
             // Salary calculation including bonus adjustments
-            $salaryData = $users->map(function($user) use ($month) {
+            $salaryData = $users->map(function($user) use ($month, $year) {
                 $workedHours = 0;
 
                 foreach ($user->attendances as $att) {
@@ -1186,6 +1239,7 @@ class ReportsController extends Controller
                 $finalSalary = $baseSalary + $totalBonusAdds - $totalBonusRemoves;
 
                 return [
+                    'year'             => $year,
                     'month'            => Carbon::create(null, $month)->format('F'),
                     'name'             => $user->name,
                     'worked_hours'     => round($workedHours, 2),
@@ -1201,10 +1255,12 @@ class ReportsController extends Controller
 
         $user = User::find($request->user_id);
         $salaryReport = $salaryData;
+        $attendances = $attendanceGrouped;
+        Log::info($attendances);
         $month = $request->monthx ?? '';
         $year = $request->yearx ?? '';
 
-        $pdf = PDF::loadView('reports.salary_slip_pdf', compact('salaryReport', 'user', 'month', 'year'));
+        $pdf = PDF::loadView('reports.salary_slip_pdf', compact('salaryReport', 'user', 'month', 'year', 'attendances' ));
         return $pdf->stream('salary_slip.pdf');
     }
 
