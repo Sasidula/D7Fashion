@@ -31,7 +31,10 @@
     x-data="{ openProduct: {{ $isProductOpen ? 'true' : 'false' }}, openMaterials: {{ $isMaterialsOpen ? 'true' : 'false' }}, openEmployee: {{ $isEmployeeOpen ? 'true' : 'false' }}, openAssignment: {{ $isAssignmentOpen ? 'true' : 'false' }} }"
 >
     <nav class="p-4 space-y-2 overflow-y-auto h-[calc(100vh-4rem)] pr-2 custom-scrollbar">
+        @if($isAdminOrManager)
         <x-sidebar-link href="{{ url('/dashboard/counter') }}" label="Counter" icon="layout-dashboard" :active="$currentPage === 'counter'" />
+        @endif
+
         <x-sidebar-link href="{{ url('/dashboard/attendance') }}" label="Attendance" icon="calendar-clock" :active="$currentPage === 'attendance'" />
 
         <!-- Employee -->

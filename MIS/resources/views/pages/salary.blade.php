@@ -244,6 +244,18 @@
                                     <div class="grid grid-cols-2 gap-4 text-sm">
                                         <div>
                                             <p><span class="font-medium text-gray-700">Worked Hours:</span> {{ $row['worked_hours'] }}</p>
+                                            @foreach($attendance as $userId => $attendances)
+                                                @foreach($attendances as $attendance)
+                                                    <p class="ml-4">
+                                                        <span class="font-medium text-gray-700"> Date:</span> {{ $attendance->date->format('Y-m-d') }}
+                                                    </p>
+                                                    <p class="ml-4">
+                                                        <span class="font-medium text-gray-700">Check In:</span> {{ $attendance->check_in ?? '-' }}
+                                                        <span class="font-medium text-gray-700">Check Out:</span> {{ $attendance->check_out ?? '-' }}
+                                                        <span class="font-medium text-gray-700 justify-end">Hours Worked:</span> {{ $attendance->hours_worked ?? '-' }}
+                                                    </p>
+                                                @endforeach
+                                            @endforeach
                                             <p><span class="font-medium text-gray-700">Salary Type:</span> {{ $row['salary_type'] }}</p>
                                             <p><span class="font-medium text-gray-700">Rate:</span> Rs. {{ number_format($row['rate'], 2) }}</p>
                                         </div>

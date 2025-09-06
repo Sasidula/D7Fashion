@@ -55,33 +55,63 @@
 
                             <!-- Form -->
                             <div class="space-y-6">
-                                <div
-                                     class="max-w-md mx-auto mt-6 bg-white rounded-lg shadow-md p-6"
-                                >
-                                    <!-- Form -->
-                                    <form method="POST" action="{{ route('attendance.check') }}">
-                                        @csrf
-                                        <div class="space-y-6">
-                                            <!-- Employee Select -->
-                                            <div>
-                                                <label for="employee" class="block text-sm font-medium text-gray-700 mb-1">
-                                                    Select Employee
-                                                </label>
-                                                <select
-                                                    id="employee"
-                                                    name="user_id"
-                                                    x-model="selectedEmployee"
-                                                    class="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
-                                                    required
-                                                >
-                                                    <option value="">-- Select an employee --</option>
-                                                    @foreach($employees as $user)
-                                                        <option value="{{ $user->id }}" {{ old('user_id') == $user->id ? 'selected' : '' }}>
-                                                            {{ $user->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
+                                @if(Auth::user()->role === 'admin' || Auth::user()->role === 'manager')
+                                    <div
+                                        class="max-w-md mx-auto mt-6 bg-white rounded-lg shadow-md p-6"
+                                    >
+                                        <!-- Form -->
+                                        <form method="POST" action="{{ route('attendance.check') }}">
+                                            @csrf
+                                            <div class="space-y-6">
+                                                <!-- Employee Select -->
+                                                <div>
+                                                    <label for="employee"
+                                                           class="block text-sm font-medium text-gray-700 mb-1">
+                                                        Select Employee
+                                                    </label>
+                                                    <select
+                                                        id="employee"
+                                                        name="user_id"
+                                                        x-model="selectedEmployee"
+                                                        class="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
+                                                        required
+                                                    >
+                                                        <option value="">-- Select an employee --</option>
+                                                        @foreach($employees as $user)
+                                                            <option
+                                                                value="{{ $user->id }}" {{ old('user_id') == $user->id ? 'selected' : '' }}>
+                                                                {{ $user->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+
+                                                <!-- Submit Button -->
+                                                <div class="flex justify-end gap-3 mt-4">
+                                                    <button
+                                                        type="submit"
+                                                        class="bg-[#0f2360] text-white px-4 py-2 rounded-md hover:bg-[#0d1d4f] transition w-full"
+                                                    >
+                                                        Check Attendance
+                                                    </button>
+                                                </div>
                                             </div>
+                                        </form>
+                                    </div>
+                                @else
+                                    <div
+                                        class="max-w-md mx-auto mt-6 bg-white rounded-lg shadow-md p-6"
+                                    >
+                                        <div class="text-center">
+                                            <h2 class="text-xl font-bold mb-4 text-[#0f2360]">Employee:</h2>
+                                            <h2 class="text-2xl font-bold mb-4 text-[#0f2360]">{{ Auth::user()->name }}</h2>
+                                        </div>
+
+                                        <form method="POST" action="{{ route('attendance.check') }}">
+                                            @method('POST')
+                                            @csrf
+
+                                            <input type="hidden" name="user_id" value="{{ Auth::user()->id }}">
 
                                             <!-- Submit Button -->
                                             <div class="flex justify-end gap-3 mt-4">
@@ -92,9 +122,10 @@
                                                     Check Attendance
                                                 </button>
                                             </div>
-                                        </div>
-                                    </form>
-                                </div>
+
+                                        </form>
+                                    </div>
+                                @endif
 
                                 @if(session("status") == "found")
                                     <!-- Attendance Type -->
@@ -125,13 +156,14 @@
                                         <form method="POST" action="{{ route('attendance.mark') }}">
                                             @method('PATCH')
                                             @csrf
-                                            <input type="hidden" name="user_id" x-model="Attendance.user_id" />
+                                            <input type="hidden" name="user_id" x-model="Attendance.user_id"/>
                                             <button
                                                 type="submit"
                                                 class="w-full py-3 px-4 rounded-md flex items-center justify-center bg-[#fd9c0a] hover:bg-[#e08c09] text-white font-medium"
                                             >
-                                                <x-lucide-clock class="w-5 h-5 mr-2" />
-                                                <span x-text="attendanceType === 'in' ? 'Record Clock In' : 'Record Clock Out'"></span>
+                                                <x-lucide-clock class="w-5 h-5 mr-2"/>
+                                                <span
+                                                    x-text="attendanceType === 'in' ? 'Record Clock In' : 'Record Clock Out'"></span>
                                             </button>
                                         </form>
                                     </div>
@@ -145,15 +177,21 @@
                                                     <form method="POST" action="{{ route('attendance.mark') }}">
                                                         @method('PATCH')
                                                         @csrf
-                                                        <input type="hidden" name="user_id" x-model="Attendance.user_id" />
-                                                        <input type="date" name="date" value="{{ date('Y-m-d') }}" class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360] mb-2"  />
-                                                        <input type="time" name="check_in" value="{{ now()->format('H:i') }}" class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360] mb-2" />
-                                                        <input type="time" name="check_out" value="{{ now()->format('H:i') }}" class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360] mb-2"  />
+                                                        <input type="hidden" name="user_id"
+                                                               x-model="Attendance.user_id"/>
+                                                        <input type="date" name="date" value="{{ date('Y-m-d') }}"
+                                                               class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360] mb-2"/>
+                                                        <input type="time" name="check_in"
+                                                               value="{{ now()->format('H:i') }}"
+                                                               class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360] mb-2"/>
+                                                        <input type="time" name="check_out"
+                                                               value="{{ now()->format('H:i') }}"
+                                                               class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360] mb-2"/>
                                                         <button
                                                             type="submit"
                                                             class="w-full py-3 px-4 rounded-md flex items-center justify-center bg-[#fd9c0a] hover:bg-[#e08c09] text-white font-medium"
                                                         >
-                                                            <x-lucide-clock class="w-5 h-5 mr-2" />
+                                                            <x-lucide-clock class="w-5 h-5 mr-2"/>
                                                             Mark Attendance
                                                         </button>
                                                     </form>
@@ -165,7 +203,8 @@
                                                 <label for="vis"><b>Custom Attendance</b></label>
                                                 <div class="pt-4" x-show="showDiv">
                                                     <div x-data="{ showDiv: false }">
-                                                        <div class="mt-4 p-2 bg-yellow-100 text-yellow-800 rounded mb-4">
+                                                        <div
+                                                            class="mt-4 p-2 bg-yellow-100 text-yellow-800 rounded mb-4">
                                                             <span> Please clock out to mark a custom attendance.</span>
                                                         </div>
                                                     </div>
@@ -173,10 +212,7 @@
                                             </div>
                                         @endif
                                     @endif
-
-
                                 @endif
-
                             </div>
                         </div>
                     </div>
@@ -264,7 +300,7 @@
                 });
 
                 window.addEventListener('popup-open', (e) => {
-                    const { title, view } = e.detail;
+                    const {title, view} = e.detail;
                     this.open(title, view);
                 });
             },

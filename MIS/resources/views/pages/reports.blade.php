@@ -253,6 +253,50 @@
                             </form>
                         </div>
 
+                        <div x-show="selectedReportType === 'employee'">
+                            <div class="bg-white border rounded-lg overflow-hidden mb-4">
+                                <div class="mt-2 mb-2">
+                                    <form action="{{ route('page.reports') }}" method="GET" class="flex flex-row items-center gap-4">
+                                        <input type="hidden" name="yearx" x-model="year">
+                                        <input type="hidden" name="monthx" x-model="month">
+                                        <input type="hidden" name="dayx" x-model="day">
+
+                                        <!-- Employee Select -->
+                                        <div class="flex items-center ml-2">
+                                            <label for="user_id" class="text-sm font-medium text-gray-700 mr-2">
+                                                Select Employee :
+                                            </label>
+                                            <select
+                                                id="user_id"
+                                                name="user_id"
+                                                class="inline-flex border w-full rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
+                                            >
+                                                <option value="">-- Select an employee --</option>
+                                                @foreach($employee as $employees)
+                                                    <option value="{{ $employees->id }}" {{ old('user_id') == $employees->id ? 'selected' : '' }}>
+                                                        {{ $employees->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <!-- Export Button -->
+                                        <button
+                                            type="submit"
+                                            class="inline-flex items-center px-4 py-2 bg-[#fd9c0a] border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-[#e08c09] focus:outline-none"
+                                        >
+                                            <x-lucide-search class="w-4 h-4 mr-2" />
+                                            Search
+                                        </button>
+                                        <a href="{{ url('/dashboard/reports') }}"
+                                           class="px-4 py-2 bg-[#fd9c0a] border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-[#e08c09] focus:outline-none">
+                                            Reset
+                                        </a>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
                         <div x-show="selectedReportType === 'expenses'">
                             <div class="bg-white border rounded-lg overflow-hidden mb-4">
                                 <div class="mt-2 mb-2">
@@ -490,11 +534,15 @@
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check In</th>
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check Out</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hours Worked</th>
                                         </tr>
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
                                         @foreach($attendance as $userId => $attendances)
                                             {{-- Print user name from first attendance (user relation loaded) --}}
+                                            @php
+                                                $totalHours = 0;
+                                            @endphp
                                             <tr class="bg-gray-200 font-bold">
                                                 <td colspan="4">
                                                     User: {{ $attendances->first()->user->name ?? 'Unknown' }} — Role: {{ $attendances->first()->user->role ?? '-' }}
@@ -506,8 +554,17 @@
                                                     <td class="px-6 py-4 whitespace-nowrap">{{ $attendance->date->format('Y-m-d') }}</td>
                                                     <td class="px-6 py-4 whitespace-nowrap">{{ $attendance->check_in ?? '-' }}</td>
                                                     <td class="px-6 py-4 whitespace-nowrap">{{ $attendance->check_out ?? '-' }}</td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">{{ $attendance->hours_worked ?? '-' }} Hours</td>
+                                                    @php
+                                                        $totalHours += $attendance->hours_worked;
+                                                    @endphp
                                                 </tr>
                                             @endforeach
+                                            <tr class="bg-gray-200 font-bold">
+                                                <td colspan="4">
+                                                    Total Hours Worked: {{ $totalHours }} Hours
+                                                </td>
+                                            </tr>
                                         @endforeach
                                         </tbody>
                                     </table>

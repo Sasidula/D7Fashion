@@ -81,13 +81,17 @@
         <th>Date</th>
         <th>Check In</th>
         <th>Check Out</th>
+        <th>Hours Worked</th>
     </tr>
     </thead>
     <tbody>
     @foreach($attendance as $userId => $attendances)
+        @php
+            $totalHours = 0;
+        @endphp
         <!-- User Group Header -->
         <tr class="group-header">
-            <td colspan="3">
+            <td colspan="4">
                 User: {{ $attendances->first()->user->name ?? 'Unknown' }} —
                 Role: {{ $attendances->first()->user->role ?? '-' }}
                 (ID: {{ $userId }})
@@ -100,8 +104,17 @@
                 <td>{{ $record->date->format('Y-m-d') }}</td>
                 <td>{{ $record->check_in ?? '-' }}</td>
                 <td>{{ $record->check_out ?? '-' }}</td>
+                <td>{{ $record->hours_worked ?? '-' }} Hours</td>
+                @php
+                    $totalHours += $record->hours_worked;
+                @endphp
             </tr>
         @endforeach
+        <tr class="bg-gray-200 font-bold">
+            <td colspan="4">
+                Total Hours Worked: {{ $totalHours }} Hours
+            </td>
+        </tr>
     @endforeach
     </tbody>
 </table>
