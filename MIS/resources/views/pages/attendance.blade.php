@@ -92,7 +92,7 @@
                                                         type="submit"
                                                         class="bg-[#0f2360] text-white px-4 py-2 rounded-md hover:bg-[#0d1d4f] transition w-full"
                                                     >
-                                                        Check Attendance
+                                                        Select Employee
                                                     </button>
                                                 </div>
                                             </div>
@@ -119,7 +119,7 @@
                                                     type="submit"
                                                     class="bg-[#0f2360] text-white px-4 py-2 rounded-md hover:bg-[#0d1d4f] transition w-full"
                                                 >
-                                                    Check Attendance
+                                                    Comfirm Employee
                                                 </button>
                                             </div>
 
@@ -128,6 +128,14 @@
                                 @endif
 
                                 @if(session("status") == "found")
+                                    <div class="max-w-md mx-auto mt-6 bg-white rounded-lg shadow-md p-6">
+                                        <div class="text-center">
+                                            <h2 class="text-xl font-bold mb-4 text-[#0f2360]">Employee:</h2>
+                                            <h2 class="text-2xl font-bold mb-4 text-[#0f2360]">
+                                                {{ session('userx')->name }}
+                                            </h2>
+                                        </div>
+                                    </div>
                                     <!-- Attendance Type -->
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">

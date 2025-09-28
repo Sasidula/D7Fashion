@@ -6,6 +6,7 @@ use App\Models\Attendance;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class AttendanceController extends Controller
@@ -28,16 +29,27 @@ class AttendanceController extends Controller
         $date = $validated['date'] ?? now()->toDateString();
         $userId = $validated['user_id'];
 
-        $attendance = Attendance::where('user_id', $userId)->latest()->first();
+        $usercheck = User::where('id', $userId)->first();
 
-        if ($attendance) {
-            return redirect()->back()->with([
-                'status' => 'found',
-                'data' => $attendance,
-            ]);
+        log::info($userId);
+
+        if (!$usercheck) {
+            return redirect()->back()->with('status', 'not found');
         }
 
-        return redirect()->back()->with('status', 'not found');
+        $attendance = Attendance::where('user_id', $userId)->latest()->first();
+
+        if (!$attendance) {
+            $attendance = ['id' => null, 'user_id' => $userId, 'date' => $date, 'check_in' => null, 'check_out' => null];//{"id":1,"user_id":2,"date":"1997-09-16T00:00:00.000000Z","check_in":"16:24:00","check_out":"00:00:00","created_at":"2025-08-15T16:55:57.000000Z","updated_at":"2025-08-15T16:55:57.000000Z"};
+        }
+
+        Log::info($attendance);
+
+        return redirect()->back()->with([
+            'status' => 'found',
+            'data' => $attendance,
+            'userx' => $usercheck,
+        ]);
     }
 
 
