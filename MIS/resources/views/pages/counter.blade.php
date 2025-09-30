@@ -291,7 +291,8 @@
             submitCart() {
                 const products = this.cartItems.map(item => ({
                     id: item.id,
-                    type: item.type
+                    type: item.type,
+                    quantity: item.quantity
                 }));
                 this.$refs.productsInput.value = JSON.stringify(products);
             },

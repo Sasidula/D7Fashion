@@ -10,6 +10,7 @@ use App\Models\ProductSale;
 use App\Models\ProductSalesItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class ProductSaleController extends Controller
@@ -41,6 +42,8 @@ class ProductSaleController extends Controller
         ]);
 
         $products = json_decode($request->input('products'), true);
+        Log::info('products:-');
+        Log::info($products);
 
         if (!is_array($products)) {
             return back()->withErrors(['products' => 'Products must be a valid array.']);
@@ -54,23 +57,29 @@ class ProductSaleController extends Controller
             ]);
 
             foreach ($products as $product) {
-                ProductSalesItem::create([
-                    'product_sales_id' => $sale->id,
-                    'product_id' => $product['id'],
-                    'product_type' => $product['type'],
-                ]);
 
-                if ($product['type'] === 'internal') {
-                    $item = InternalProductItem::where('internal_product_id', $product['id'])
-                        ->where('status', 'available')
-                        ->firstOrFail();
-                } else {
-                    $item = ExternalProductItem::where('external_product_id', $product['id'])
-                        ->where('status', 'available')
-                        ->firstOrFail();
+                $count = $product['quantity'];
+
+                for ($i = 0; $i < $count; $i++) {
+
+                    ProductSalesItem::create([
+                        'product_sales_id' => $sale->id,
+                        'product_id' => $product['id'],
+                        'product_type' => $product['type'],
+                    ]);
+
+                    if ($product['type'] === 'internal') {
+                        $item = InternalProductItem::where('internal_product_id', $product['id'])
+                            ->where('status', 'available')
+                            ->firstOrFail();
+                    } else {
+                        $item = ExternalProductItem::where('external_product_id', $product['id'])
+                            ->where('status', 'available')
+                            ->firstOrFail();
+                    }
+
+                    $item->update(['status' => 'sold']);
                 }
-
-                $item->update(['status' => 'sold']);
             }
 
             DB::commit();

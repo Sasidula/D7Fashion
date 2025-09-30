@@ -129,7 +129,7 @@
                                                 <x-lucide-calendar class="w-4 h-4 text-gray-400" />
                                             </div>
                                             <select name="yearx" id="yearx" class="block w-full pl-10 border rounded-md">
-                                                <option value="">All</option>
+                                                <option value="">Current</option>
                                                 @for($y = now()->year; $y >= 2000; $y--)
                                                     <option value="{{ $y }}" >
                                                         {{ $y }}

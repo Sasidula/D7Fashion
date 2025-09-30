@@ -109,7 +109,7 @@
                                         class="w-full bg-[#fd9c0a] text-white py-3 px-4 rounded-md hover:bg-[#e08c09] focus:outline-none flex items-center justify-center"
                                     >
                                         <x-lucide-user-plus class="w-5 h-5 mr-2" />
-                                        Add Internal Product
+                                        Create Material
                                     </button>
                                 </div>
                             </div>

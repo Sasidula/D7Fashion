@@ -35,7 +35,7 @@ class MaterialController extends Controller
         }
 
         Material::create($request->only(['name', 'supplier', 'description', 'price']));
-        return redirect()->route('pages.create-stocks')->with('success', 'Material created.');
+        return redirect()->route('stocks.create')->with('success', 'Material created.');
 
     }
 
