@@ -754,14 +754,11 @@ class ReportsController extends Controller
         // For Total Expenses
         $MaterialCosts = MaterialStock::whereMonth('created_at', $month)
             ->whereYear('created_at', $year)
-            ->with('material')
-            ->get()
-            ->sum(fn($s) => $s->material->price);
+            ->sum('price');
         $ExternalCosts = ExternalProductItem::whereMonth('created_at', $month)
             ->whereYear('created_at', $year)
-            ->with('external_product')
-            ->get()
-            ->sum(fn($s) => $s->external_product->bought_price);
+            ->sum('bought_price');
+
 
         $records = MonthlyExpensesRecord::with(['expense' => fn($q) => $q->withTrashed()])
             ->get()

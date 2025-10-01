@@ -8,11 +8,21 @@ use Illuminate\Database\Eloquent\Model;
 class MaterialAssignment extends Model {
     use HasFactory;
 
-    protected $fillable = ['material_stock_id', 'user_id', 'assigned_by', 'status', 'notes'];
+    protected $fillable = ['user_id', 'assigned_by', 'status', 'notes'];
 
-    public function stock() { return $this->belongsTo(MaterialStock::class); }
+    public function user() {
+        return $this->belongsTo(User::class)->withTrashed();
+    }
 
-    public function user() { return $this->belongsTo(User::class)->withTrashed(); }
+    public function assigner() {
+        return $this->belongsTo(User::class, 'assigned_by')->withTrashed();
+    }
 
-    public function assigner() { return $this->belongsTo(User::class, 'assigned_by')->withTrashed(); }
+    public function items() {
+        return $this->hasMany(MaterialAssignmentItems::class);
+    }
+
+    public function material() {
+        return $this->belongsTo(Material::class);
+    }
 }

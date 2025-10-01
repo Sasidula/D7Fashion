@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('material_stocks', function (Blueprint $table) {
+        Schema::create('material_assignment_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('material_id')->constrained()->onDelete('cascade');
-            $table->decimal('price', 10, 2); // ✅ snapshot price at creation
-            $table->enum('status', ['available', 'unavailable', 'deleted']);
+            $table->foreignId('material_assignment_id')->constrained()->onDelete('cascade');
+            $table->foreignId('material_stock_id')->constrained()->onDelete('cascade');
+            $table->integer('quantity')->default(1);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('material_stocks');
+        Schema::dropIfExists('material_assignment_items');
     }
 };

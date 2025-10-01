@@ -12,13 +12,20 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class InternalProductItemFactory extends Factory
 {
-    public function definition() {
+    public function definition()
+    {
+        $product = InternalProduct::inRandomOrder()->first();
+        $assignment = MaterialAssignment::inRandomOrder()->first();
+        $user = User::where('role', '!=', 'employee')->inRandomOrder()->first();
+
         return [
-            'internal_product_id' => InternalProduct::inRandomOrder()->first()->id,
-            'assignment_id' => MaterialAssignment::inRandomOrder()->first()->id,
+            'internal_product_id' => $product->id,
+            'assignment_id' => $assignment->id,
+            'price' => $product->price, // ✅ snapshot of internal product price
             'use' => $this->faker->randomElement(['approved', 'rejected']),
             'status' => $this->faker->randomElement(['available', 'sold']),
-            'created_by' => User::where('role', '!=', 'employee')->inRandomOrder()->first()->id,
+            'created_by' => $user->id,
         ];
     }
+
 }

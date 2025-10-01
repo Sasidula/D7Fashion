@@ -6,6 +6,7 @@ use App\Models\Attendance;
 use App\Models\EmployeeBonusAdjustment;
 use App\Models\ExternalProductItem;
 use App\Models\InternalProductItem;
+use App\Models\MaterialAssignmentItems;
 use App\Models\MaterialAssignment;
 use App\Models\MaterialStock;
 use App\Models\MonthlyExpensesList;
@@ -33,6 +34,7 @@ class DatabaseSeeder extends Seeder
         User::factory()->count(10)->create();
         MaterialStock::factory(50)->create();
         MaterialAssignment::factory(30)->create();
+        MaterialAssignmentItems::factory(50)->create();
         Attendance::factory(50)->create();
         InternalProductItem::factory(30)->create();
         ExternalProductItem::factory(30)->create();

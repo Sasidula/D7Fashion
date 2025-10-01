@@ -10,10 +10,15 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class MaterialStockFactory extends Factory
 {
-    public function definition() {
+    public function definition()
+    {
+        // Pick a random material
+        $material = Material::inRandomOrder()->first();
+
         return [
-            'material_id' => Material::inRandomOrder()->first()->id,
+            'material_id' => $material->id,
+            'price' => $material->price, // ✅ snapshot price from material table
             'status' => $this->faker->randomElement(['available', 'unavailable']),
-    ];
-}
+        ];
+    }
 }

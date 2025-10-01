@@ -15,11 +15,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('internal_product_id')->constrained()->onDelete('cascade');
             $table->foreignId('assignment_id')->nullable()->constrained('material_assignments')->onDelete('cascade');
-            $table->enum('use', [ 'reviewing', 'approved', 'rejected']);
+            $table->decimal('price', 10, 2); // ✅ snapshot of internal product price
+            $table->enum('use', ['reviewing', 'approved', 'rejected']);
             $table->enum('status', ['available', 'sold', 'deleted'])->default('available');
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });
+
     }
 
     /**

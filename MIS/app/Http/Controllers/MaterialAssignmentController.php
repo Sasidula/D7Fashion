@@ -6,6 +6,7 @@ use App\Models\InternalProduct;
 use App\Models\InternalProductItem;
 use App\Models\Material;
 use App\Models\MaterialAssignment;
+use App\Models\MaterialAssignmentItems;
 use App\Models\MaterialStock;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -21,20 +22,47 @@ class MaterialAssignmentController extends Controller
      */
     public function index()
     {
-        $assignments = MaterialAssignment::query()
-            ->select(
-                'materials.id as material_id',
-                'materials.name',
-                'users.id as user_id',
-                'users.name as user_name',
-                DB::raw('COUNT(material_assignments.id) as assignment_count')
-            )
-            ->join('material_stocks', 'material_assignments.material_stock_id', '=', 'material_stocks.id')
-            ->join('materials', 'material_stocks.material_id', '=', 'materials.id')
-            ->join('users', 'material_assignments.user_id', '=', 'users.id')
-            ->where('material_assignments.status', 'incomplete')
-            ->groupBy('materials.id', 'materials.name', 'users.id', 'users.name') // ✅ fix
-            ->get();
+        $assignments = MaterialAssignment::with(['items.material'])
+            ->where('status', 'incomplete')
+            ->get()
+            ->groupBy('user_id') // group by user
+            ->map(function ($userAssignments) {
+                $user = $userAssignments->first()->user;
+
+                $mergedAssignments = [];
+
+                foreach ($userAssignments as $assignment) {
+                    // Normalize materials for comparison: material_id => quantity
+                    $materials = $assignment->items->map(function ($item) {
+                        return [
+                            'material_id' => $item->material->id,
+                            'material_name' => $item->material->name,
+                            'quantity' => $item->quantity,
+                        ];
+                    })->sortBy('material_id')->values()->all();
+
+                    // Create a string key to detect duplicates
+                    $key = collect($materials)->map(fn($m) => "{$m['material_id']}:{$m['quantity']}")->implode(',');
+
+                    if (isset($mergedAssignments[$key])) {
+                        $mergedAssignments[$key]['assignment_count']++;
+                        $mergedAssignments[$key]['assignment_ids'][] = $assignment->id; // add the assignment id
+                    } else {
+                        $mergedAssignments[$key] = [
+                            'materials' => $materials,
+                            'assignment_count' => 1,
+                            'assignment_ids' => [$assignment->id], // initialize with current id
+                        ];
+                    }
+                }
+
+                return [
+                    'user_id' => $user->id,
+                    'user_name' => $user->name,
+                    'assignments' => array_values($mergedAssignments),
+                ];
+            })
+            ->values();
 
         $fullAssignments = MaterialAssignment::where('material_assignments.status', 'incomplete')
             ->count();
@@ -46,9 +74,6 @@ class MaterialAssignmentController extends Controller
         $availableProducts = InternalProduct::withCount(['items as available_count' => function ($query) {
             $query->where('status', 'available');
         }])->get();
-
-        Log::info('assignments:-');
-        Log::info($assignments);
 
         return view('pages.accept-assignment', compact(['employees', 'assignments', 'fullAssignments', 'products', 'availableProducts']));
     }
@@ -111,14 +136,48 @@ class MaterialAssignmentController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        $assignments = MaterialAssignment::query()
-            ->select('materials.id as material_id', 'materials.name', \DB::raw('count(material_assignments.id) as assignment_count'))
-            ->join('material_stocks', 'material_assignments.material_stock_id', '=', 'material_stocks.id')
-            ->join('materials', 'material_stocks.material_id', '=', 'materials.id')
-            ->where('material_assignments.status', 'incomplete')
-            ->where('material_assignments.user_id', $request->user_id)
-            ->groupBy('materials.id', 'materials.name')
-            ->get();
+        $assignments = MaterialAssignment::with(['items.material'])
+            ->where('user_id', $request->user_id)
+            ->where('status', 'incomplete')
+            ->get()
+            ->groupBy('user_id') // group by user
+            ->map(function ($userAssignments) {
+                $user = $userAssignments->first()->user;
+
+                $mergedAssignments = [];
+
+                foreach ($userAssignments as $assignment) {
+                    // Normalize materials for comparison: material_id => quantity
+                    $materials = $assignment->items->map(function ($item) {
+                        return [
+                            'material_id' => $item->material->id,
+                            'material_name' => $item->material->name,
+                            'quantity' => $item->quantity,
+                        ];
+                    })->sortBy('material_id')->values()->all();
+
+                    // Create a string key to detect duplicates
+                    $key = collect($materials)->map(fn($m) => "{$m['material_id']}:{$m['quantity']}")->implode(',');
+
+                    if (isset($mergedAssignments[$key])) {
+                        $mergedAssignments[$key]['assignment_count']++;
+                        $mergedAssignments[$key]['assignment_ids'][] = $assignment->id; // add the assignment id
+                    } else {
+                        $mergedAssignments[$key] = [
+                            'materials' => $materials,
+                            'assignment_count' => 1,
+                            'assignment_ids' => [$assignment->id], // initialize with current id
+                        ];
+                    }
+                }
+
+                return [
+                    'user_id' => $user->id,
+                    'user_name' => $user->name,
+                    'assignments' => array_values($mergedAssignments),
+                ];
+            })
+            ->values();
 
         $fullAssignments = MaterialAssignment::where('material_assignments.status', 'incomplete')
             ->where('material_assignments.user_id', $request->user_id)
@@ -145,10 +204,11 @@ class MaterialAssignmentController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'material_id' => 'required|exists:materials,id',
             'user_id' => 'required|exists:users,id',
             'notes' => 'nullable|string',
-            'quantity' => 'required|integer|min:1',
+            'materials' => 'required|array|min:1',
+            'materials.*.material_stock_id' => 'required|exists:material_stocks,id',
+            'materials.*.quantity' => 'required|integer|min:1',
         ]);
 
         if ($validator->fails()) {
@@ -158,37 +218,62 @@ class MaterialAssignmentController extends Controller
         DB::beginTransaction();
 
         try {
-            $availableStocks = MaterialStock::where('material_id', $request->material_id)
-                ->where('status', 'available')
-                ->take($request->quantity)
-                ->lockForUpdate()
-                ->get();
+            // Create one assignment for the employee
+            $assignment = MaterialAssignment::create([
+                'user_id' => $request->user_id,
+                'assigned_by' => auth()->id(),
+                'status' => 'incomplete',
+                'notes' => $request->notes,
+            ]);
 
-            if ($availableStocks->count() < $request->quantity) {
-                DB::rollBack();
-                return redirect()->back()->with('error', 'Not enough available stock for the requested quantity.');
-            }
+            // Process each material request
+            foreach ($request->materials as $material) {
 
-            foreach ($availableStocks as $stock) {
-                $stock->update(['status' => 'unavailable']);
+                $availableStocks = MaterialStock::where('material_id', $material['material_stock_id'])
+                    ->where('status', 'available')
+                    ->take($request->quantity)
+                    ->lockForUpdate()
+                    ->get();
 
-                MaterialAssignment::create([
-                    'material_stock_id' => $stock->id,
-                    'user_id' => $request->user_id,
-                    'assigned_by' => auth()->id(),
-                    'status' => 'incomplete',
-                    'notes' => $request->notes,
+
+                if ($availableStocks->count() < $material['quantity']) {
+                    DB::rollBack();
+                    return redirect()->back()->with(
+                        'error',
+                        'Not enough available stock for material ID ' . $material['material_stock_id']
+                    );
+                }
+
+                // Mark as unavailable
+                $updatedCount = MaterialStock::where('material_id', $material['material_stock_id'])
+                    ->where('status', 'available')
+                    ->limit($material['quantity'])
+                    ->update(['status' => 'unavailable']);
+
+                if ($updatedCount < $material['quantity']) {
+                    DB::rollBack();
+                    return redirect()->back()->with(
+                        'error',
+                        'Stock update failed for material ID ' . $material['material_stock_id']
+                    );
+                }
+
+                // Save assignment item
+                $assignment->items()->create([
+                    'material_stock_id' => $material['material_stock_id'],
+                    'quantity' => $material['quantity'],
                 ]);
             }
 
             DB::commit();
 
-            return redirect()->route('page.assignments.accept')->with('success', 'Assignment created.');
+            return redirect()->route('page.assignments.create')->with('success', 'Assignment created successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'An error occurred: ' . $e->getMessage());
         }
     }
+
 
 
 
@@ -198,133 +283,180 @@ class MaterialAssignmentController extends Controller
     public function updateassignment(Request $request)
     {
         $validated = $request->validate([
-            'material_id' => 'required|exists:materials,id',
-            'user_id' => 'required|exists:users,id',
-            'quantity' => 'required|integer|min:1',
-            'action' => 'required|in:delete,restore',
+            'assignment_ids'      => 'required|array',
+            'assignment_ids.*'    => 'exists:material_assignments,id',
+            'user_id'             => 'required|exists:users,id',
+            'quantity'            => 'required|integer|min:1',
+            'action'              => 'required|in:delete,restore',
         ]);
 
-        $materialId = $validated['material_id'];
+        $assignment_ids = $validated['assignment_ids'];
         $userId = $validated['user_id'];
         $quantity = $validated['quantity'];
         $action = $validated['action'];
 
-
         $targetStatus = $action === 'delete' ? 'incomplete' : 'deleted';
         $newStatus = $action === 'delete' ? 'deleted' : 'incomplete';
 
-        $assignments = MaterialAssignment::query()
-            ->select('material_assignments.*', 'materials.name as material_name')
-            ->join('material_stocks', 'material_assignments.material_stock_id', '=', 'material_stocks.id')
-            ->join('materials', 'material_stocks.material_id', '=', 'materials.id')
-            ->where('material_assignments.status', $targetStatus)
-            ->where('material_assignments.user_id', $userId)
-            ->where('material_stocks.material_id', $materialId)
-            ->limit($quantity)
-            ->get();
+        // Initialize assignments array
+        $assignments = collect();
 
-        $count = $assignments->count();
+        if ($action === 'delete') {
+            // Fetch assignments for deletion
+            $assignments = MaterialAssignment::whereIn('id', $assignment_ids)
+                ->where('user_id', $userId)
+                ->where('status', $targetStatus)
+                ->limit($quantity)
+                ->get();
 
-        if ($count < $quantity) {
-            return redirect()->route('page.assignments.accept')->withErrors([
-                'quantity' => "Only $count $targetStatus assignment(s) can be " . ($action === 'delete' ? 'deleted' : 'restored') . ".",
-            ])->withInput();
+            $count = $assignments->count();
+
+            if ($count < $quantity) {
+                return redirect()->route('page.assignments.accept')->withErrors([
+                    'quantity' => "Only $count $targetStatus assignment(s) can be deleted."
+                ])->withInput();
+            }
+        } else { // restore
+            // Fetch original selected assignments
+            $originalAssignments = MaterialAssignment::with('items')
+                ->whereIn('id', $assignment_ids)
+                ->get();
+
+            // Fetch candidate assignments for restore
+            $candidateAssignments = MaterialAssignment::with('items')
+                ->where('user_id', $userId)
+                ->where('status', $targetStatus)
+                ->get();
+
+            // Normalize helper: convert items to material_id => quantity array
+            $normalize = function ($assignment) {
+                return $assignment->items
+                    ->mapWithKeys(fn($item) => [$item->material_id => $item->quantity])
+                    ->sortKeys()
+                    ->toArray();
+            };
+
+            // Normalized sets
+            $originalSets = $originalAssignments->map($normalize)->toArray();
+
+            // Filter candidate assignments: match original sets
+            $assignments = $candidateAssignments->filter(function ($assignment) use ($originalSets, $normalize) {
+                $current = $normalize($assignment);
+                foreach ($originalSets as $orig) {
+                    if ($current === $orig) {
+                        return true;
+                    }
+                }
+                return false;
+            })->take($quantity);
+
+            if ($assignments->count() < $quantity) {
+                return redirect()->route('page.assignments.accept')->withErrors([
+                    'quantity' => "The amount of deleted assignments are $assignments->count() and do not match the restore quantity of $quantity."
+                ])->withInput();
+            }
         }
 
         DB::beginTransaction();
         try {
             foreach ($assignments as $assignment) {
-
                 if ($action === 'delete') {
-                    $assignment->update([
-                        'status' => $newStatus,
-                    ]);
-                    MaterialStock::where('id', $assignment->material_stock_id)->update(['status' => 'available']);
-                }else{
-                    $materialItem = MaterialStock::where('material_id', $materialId)
-                        ->where('status', 'available')
-                        ->first();
+                    // Mark assignment as deleted
+                    $assignment->update(['status' => $newStatus]);
 
-                    if (!$materialItem) {
-                        return redirect()->route('page.assignments.accept')->withErrors([
-                            'stock' => "No available stock found for this material.",
-                        ]);
-                    }
-                    $materialItem->update(['status' => 'unavailable']);
-                    $assignment->update([
-                        'status' => $newStatus,
-                        'material_stock_id' => $materialItem->id,
-                    ]);
+                    // Restore stock
+                    MaterialAssignmentItems::where('material_assignment_id', $assignment->id)
+                        ->get()
+                        ->each(function ($item) {
+                            MaterialStock::where('id', $item->material_stock_id)->update(['status' => 'available']);
+                        });
+
+                } else { // restore
+                    MaterialAssignmentItems::where('material_assignment_id', $assignment->id)
+                        ->get()
+                        ->each(function ($item) use ($assignment) {
+                            $stock = MaterialStock::where('id', $item->material_stock_id)
+                                ->where('status', 'available')
+                                ->first();
+
+                            if (!$stock) {
+                                throw new \Exception("Stock ID {$item->material_stock_id} for Assignment #{$assignment->id} is not available.");
+                            }
+
+                            $stock->update(['status' => 'unavailable']);
+                        });
+
+                    $assignment->update(['status' => $newStatus]);
+
                 }
             }
+
             DB::commit();
+
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->route('page.assignments.accept')->withErrors(['error' => 'Update failed.']);
+            return redirect()->route('page.assignments.accept')->withErrors([
+                'error' => 'Update failed: ' . $e->getMessage()
+            ]);
         }
 
-        return redirect()->route('page.assignments.accept')->with('success', "$count $targetStatus assignment(s) " . ($action === 'delete' ? 'deleted' : 'restored') . ".");
+        return redirect()->route('page.assignments.accept')->with('success', "$quantity $targetStatus assignment(s) " . ($action === 'delete' ? 'deleted' : 'restored') . ".");
     }
+
 
 
     public function complete(Request $request)
     {
         $validated = $request->validate([
-            'material_id' => 'required|exists:materials,id',
-            'user_id' => 'required|exists:users,id',
+            'assignment_ids'      => 'required|array',
+            'assignment_ids.*'    => 'exists:material_assignments,id',
+            'user_id'             => 'required|exists:users,id',
             'internal_product_id' => 'required|exists:internal_products,id',
             'assignment_quantity' => 'required|integer|min:1',
-            'product_quantity' => 'required|integer|min:1',
+            'product_quantity'    => 'required|integer|min:1',
         ]);
 
-        $materialId = $validated['material_id'];
-        $userId = $validated['user_id'];
+        $assignmentIds     = $validated['assignment_ids'];
+        $userId            = $validated['user_id'];
         $internalProductId = $validated['internal_product_id'];
-        $assignmentQuantity = $validated['assignment_quantity'];
-        $productQuantity = $validated['product_quantity'];
+        $assignmentQuantity= $validated['assignment_quantity'];
+        $productQuantity   = $validated['product_quantity'];
 
-        $assignments = MaterialAssignment::query()
-            ->select('material_assignments.*', 'materials.name as material_name')
-            ->join('material_stocks', 'material_assignments.material_stock_id', '=', 'material_stocks.id')
-            ->join('materials', 'material_stocks.material_id', '=', 'materials.id')
-            ->where('material_assignments.status', 'incomplete')
-            ->where('material_assignments.user_id', $userId)
-            ->where('material_stocks.material_id', $materialId)
+        // fetch only required number of assignments
+        $assignments = MaterialAssignment::whereIn('id', $assignmentIds)
+            ->where('status', 'incomplete')
+            ->where('user_id', $userId)
             ->limit($assignmentQuantity)
             ->get();
 
-//        $count = $assignments->count();
+        $count = $assignments->count();
 
-//        if ($count < $quantity) {
-//            return redirect()->route('page.assignments.accept')->withErrors([
-//                'quantity' => "Only $count incomplete assignment(s) can be marked as complete.",
-//            ])->withInput();
-//        }
+        if ($count < $assignmentQuantity) {
+            return redirect()->route('page.assignments.accept')->withErrors([
+                'quantity' => "Only $count incomplete assignment(s) can be marked as complete.",
+            ])->withInput();
+        }
 
         DB::transaction(function () use ($assignments, $productQuantity, $internalProductId) {
 
-            //Log::info('Assignments: ' . json_encode($assignments->toArray()));
             foreach ($assignments as $assignment) {
                 $assignment->update([
                     'status' => 'complete',
                 ]);
             }
-            //Log::info('Assignment updated: ' . json_encode($assignments->toArray()));
 
-            //Log::info('Product quantity: ' . $productQuantity);
+            // pick any one assignment (since all belong to same user & batch)
+            $baseAssignment = $assignments->first();
 
             for ($i = 0; $i < $productQuantity; $i++) {
-                $internalProductItem = InternalProductItem::create([
+                InternalProductItem::create([
                     'internal_product_id' => $internalProductId,
-                    'assignment_id' => $assignment->id,
-                    'use' => 'reviewing',
-                    'status' => 'available',
-                    'created_by' => $assignment->user_id,
+                    'assignment_id'       => $baseAssignment->id,
+                    'use'                 => 'reviewing',
+                    'status'              => 'available',
+                    'created_by'          => $baseAssignment->user_id,
                 ]);
-
-                //Log::info('Created InternalProductItem:', $internalProductItem->toArray());
             }
-
         });
 
         return redirect()->route('page.assignments.accept')
