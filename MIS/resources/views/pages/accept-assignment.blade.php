@@ -84,58 +84,83 @@
                                 @endif
                             @endif
 
-                            @foreach ($assignments as $assignment)
-                                <div class="border rounded-lg p-4 mb-6 bg-gray-50 shadow-sm">
+                                @forelse ($assignments as $userAssignment)
+                                    <div class="border rounded-lg p-4 mb-6 bg-gray-50 shadow-sm">
+                                        <h3 class="text-xl font-semibold mb-3">{{ $userAssignment['user_name'] }}</h3>
 
-                                    @if(isset($user))
-                                    @else
-                                        <h3 class="text-xl font-semibold mb-3">{{ $assignment->user_name }}</h3>
-                                    @endif
+                                        @foreach ($userAssignment['assignments'] as $assignment)
+                                            <div class="mb-6">
+                                                    <div class="border border-gray-200 rounded p-3 mb-4 bg-white shadow-sm">
+                                                        <h4 class="text-lg font-medium mb-2">
+                                                            @foreach ($assignment['materials'] as $material)
+                                                                <span class="text-sm text-gray-600">Material:</span> {{ $material['material_name'] }}
+                                                                <span class="text-sm text-gray-600">Qty:</span> {{ $material['quantity'] }}
+                                                                <br>
+                                                            @endforeach
+                                                            <span class="text-sm text-gray-600">Assignments:</span> {{ $assignment['assignment_count'] }}
+                                                        </h4>
 
-                                    <h3 class="text-xl font-semibold mb-3">
-                                        <span class="text-sm text-gray-600">Material:</span> {{ $assignment->name }}
-                                        <span class="text-sm text-gray-600">Qty of</span> {{ $assignment->assignment_count }}
-                                        <span class="text-sm text-gray-600">Assigned</span>
-                                    </h3>
+                                                        <div class="flex flex-col sm:flex-row gap-4 items-center">
+                                                            {{-- Complete Form --}}
+                                                            <form method="POST" action="{{ route('assignments.complete') }}" class="flex flex-col sm:flex-row gap-4 items-center">
+                                                                @csrf
+                                                                <input type="hidden" name="user_id" value="{{ $userAssignment['user_id'] }}">
 
-                                    <div class="flex flex-col sm:flex-row gap-4 items-center">
-                                        {{-- Complete Form --}}
-                                        <form method="POST" action="{{ route('assignments.complete') }}" class="flex flex-col sm:flex-row gap-4 items-center">
-                                            @csrf
-                                            <input type="hidden" name="material_id" value="{{ $assignment->material_id }}">
+                                                                @foreach ($assignment['assignment_ids'] as $id)
+                                                                    <input type="hidden" name="assignment_ids[]" value="{{ $id }}">
+                                                                @endforeach
 
-                                            <input type="hidden" name="user_id" value="{{ $assignment->user_id }}">
+                                                                <select name="internal_product_id" required class="w-full sm:w-64 border rounded p-2">
+                                                                    <option value="">-- Select Product --</option>
+                                                                    @foreach ($availableProducts as $product)
+                                                                        @if ($product->available_count > 0)
+                                                                            <option value="{{ $product->id }}">
+                                                                                {{ $product->name }} ({{ $product->available_count }} available)
+                                                                            </option>
+                                                                        @endif
+                                                                    @endforeach
+                                                                </select>
 
-                                            <select name="internal_product_id" required class="w-full sm:w-64 border rounded p-2">
-                                                <option value="">-- Select Product --</option>
-                                                @foreach ($availableProducts as $product)
-                                                    @if ($product->available_count > 0)
-                                                        <option value="{{ $product->id }}">
-                                                            {{ $product->name }} ({{ $product->available_count }} available)
-                                                        </option>
-                                                    @endif
-                                                @endforeach
-                                            </select>
+                                                                <input type="number"
+                                                                       name="assignment_quantity"
+                                                                       max="{{ $assignment['assignment_count'] }}"
+                                                                       min="1"
+                                                                       required
+                                                                       class="border rounded p-2 w-48"
+                                                                       placeholder="Qty">
 
-                                            <input type="number" name="assignment_quantity" max="{{ $assignment->assignment_count }}" min="1" required class="border rounded p-2 w-48" placeholder="Qty">
+                                                                <span class="text-gray-600 semibold">To</span>
 
-                                            <span class="text-gray-600 semibold"> To</span>
+                                                                <input type="number"
+                                                                       name="product_quantity"
+                                                                       min="1"
+                                                                       required
+                                                                       class="border rounded p-2 w-28"
+                                                                       placeholder="Product Qty">
 
-                                            <input type="number" name="product_quantity" min="1" required class="border rounded p-2 w-28" placeholder="Product Qty">
+                                                                <button type="submit"
+                                                                        class="bg-[#fd9c0a] hover:bg-[#e08c09] text-white py-2 px-4 rounded-md transition duration-200 focus:outline-none">
+                                                                    Complete
+                                                                </button>
+                                                            </form>
 
-                                            <button type="submit" class="bg-[#fd9c0a] hover:bg-[#e08c09] text-white py-2 px-4 rounded-md transition duration-200 focus:outline-none">
-                                                Complete
-                                            </button>
-                                        </form>
-
-                                        {{-- Edit Button --}}
-                                        <button @click="selectedItem = {{ $assignment->material_id }}; $dispatch('open-modal', 'edit-modal')"
-                                                class="bg-[#fd9c0a] hover:bg-[#e08c09] text-white py-2 px-4 rounded-md transition duration-200 focus:outline-none">
-                                            Edit
-                                        </button>
+                                                            {{-- Edit Button --}}
+                                                            <button
+                                                                @click='selectedItem = @json($assignment["assignment_ids"]); userId = @json($userAssignment["user_id"]); $dispatch("open-modal", "edit-modal")'
+                                                                class="bg-[#fd9c0a] hover:bg-[#e08c09] text-white py-2 px-4 rounded-md transition duration-200 focus:outline-none">
+                                                                Edit
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                            </div>
+                                        @endforeach
                                     </div>
-                                </div>
-                            @endforeach
+                                @empty
+                                    <div class="text-center py-8">
+                                        <x-lucide-file-text class="mx-auto text-gray-300 mb-3 h-12 w-12" />
+                                        <p class="text-gray-500">No incomplete assignments found</p>
+                                    </div>
+                                @endforelse
                         @else
                             <div class="text-center py-8">
                                 <x-lucide-file-text class="mx-auto text-gray-300 mb-3 h-12 w-12" />
@@ -149,13 +174,18 @@
             {{-- Edit Modal --}}
             <x-modal name="edit-modal"  :scrollable="true" focusable>
                 <div class="bg-white rounded-lg shadow-lg w-full max-w-3xl mx-4 overflow-hidden">
+                    <div class="p-4 border-b border-gray-200 sticky top-0 bg-white z-10 flex items-center justify-between">
                     <div class="max-h-[90vh] overflow-y-auto rounded-lg scrollbar-thin">
                         <form method="POST" action="{{ route('assignments.update') }}" class="mt-6 space-y-6">
                             @csrf
                             @method('PATCH')
 
-                            <input type="hidden" name="material_id" value="selectedItem">
-                            <input type="hidden" name="user_id" value="userId">
+                            <template x-for="id in selectedItem" :key="id">
+                                <input type="hidden" name="assignment_ids[]" :value="id">
+                            </template>
+
+                            <input type="hidden" name="user_id" :value="userId">
+
 
                             <h2 class="text-lg font-semibold mb-2 text-gray-800">Edit Number of Assignments for Assigned for <span x-text="name"></span></h2>
 
@@ -163,6 +193,8 @@
                                 <label for="quantity" class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
                                 <input type="number" name="quantity" min="1" required class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </div>
+
+                            <span value="userId">userid = <span x-text="userId"></span></span>
 
                             <div>
                                 <label for="action" class="block text-sm font-medium text-gray-700 mb-1">Action</label>
@@ -177,6 +209,7 @@
                                 <button type="button" @click="$dispatch('close')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md">Cancel</button>
                             </div>
                         </form>
+                    </div>
                     </div>
                 </div>
             </x-modal>

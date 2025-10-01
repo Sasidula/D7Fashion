@@ -51,9 +51,8 @@
                         <form method="POST" action="{{ route('assignments.store') }}">
                             @csrf
                             <div class="max-w-2xl mx-auto">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <!-- Employee -->
-                                    <div>
+                                    <div class="mb-4">
                                         <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1">
                                             Select Employee
                                         </label>
@@ -72,44 +71,8 @@
                                         </select>
                                     </div>
 
-                                    <!-- Material -->
-                                    <div>
-                                        <label for="material_id" class="block text-sm font-medium text-gray-700 mb-1">
-                                            Select Material
-                                        </label>
-                                        <select
-                                            id="material_id"
-                                            name="material_id"
-                                            class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
-                                            required
-                                        >
-                                            <option value="">-- Select a material --</option>
-                                            @foreach($materials as $material)
-                                                <option value="{{ $material->material_id }}" {{ old('material_id') == $material->material_id ? 'selected' : '' }}>
-                                                    {{ $material->name }} ({{ $material->available_quantity }} available)
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    <!-- Quantity -->
-                                    <div>
-                                        <label for="quantity" class="block text-sm font-medium text-gray-700 mb-1">
-                                            Quantity
-                                        </label>
-                                        <input
-                                            type="number"
-                                            id="quantity"
-                                            name="quantity"
-                                            value="{{ old('quantity') }}"
-                                            min="1"
-                                            class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
-                                            required
-                                        />
-                                    </div>
-
                                     <!-- Notes -->
-                                    <div class="md:col-span-2">
+                                    <div>
                                         <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">
                                             Notes (optional)
                                         </label>
@@ -119,6 +82,58 @@
                                             rows="3"
                                             class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
                                         >{{ old('notes') }}</textarea>
+                                    </div>
+
+                                <!-- Materials Section -->
+                                <div class="mt-6">
+                                    <h3 class="text-lg font-semibold mb-2">Assign Materials</h3>
+
+                                    <div id="materials-container">
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 material-row">
+                                            <!-- Material -->
+                                            <div>
+                                                <select
+                                                    name="materials[0][material_stock_id]"
+                                                    class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
+                                                    required
+                                                >
+                                                    <option value="">-- Select a material --</option>
+                                                    @foreach($materials as $material)
+                                                        <option value="{{ $material->id }}">
+                                                            {{ $material->name }} ({{ $material->available_quantity }} available)
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+
+                                            <!-- Quantity -->
+                                            <div>
+                                                <input
+                                                    type="number"
+                                                    name="materials[0][quantity]"
+                                                    min="1"
+                                                    class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
+                                                    placeholder="Quantity"
+                                                    required
+                                                />
+                                            </div>
+
+                                            <!-- Remove Button -->
+                                            <!-- Remove Button -->
+                                            <div class="flex items-center">
+                                                <button type="button" class="remove-material">
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Add Material Button -->
+                                    <div class="mt-4">
+                                        <button type="button" id="add-material"
+                                                class="bg-[#0f2360] text-white py-2 px-4 rounded-md hover:bg-[#1c347a]">
+                                            + Add Another Material
+                                        </button>
                                     </div>
                                 </div>
 
@@ -134,6 +149,53 @@
                                 </div>
                             </div>
                         </form>
+
+                        <script>
+                            let materialIndex = 1;
+
+                            document.getElementById('add-material').addEventListener('click', function() {
+                                const container = document.getElementById('materials-container');
+                                const row = document.createElement('div');
+                                row.classList.add('grid', 'grid-cols-1', 'md:grid-cols-3', 'gap-4', 'material-row', 'mt-2');
+
+                                row.innerHTML = `
+                                    <div>
+                                        <select name="materials[${materialIndex}][material_stock_id]"
+                                            class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
+                                            required>
+                                            <option value="">-- Select a material --</option>
+                                            @foreach($materials as $material)
+                                                                <option value="{{ $material->id }}">
+                                                    {{ $material->name }} ({{ $material->available_quantity }} available)
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <input type="number" name="materials[${materialIndex}][quantity]" min="1"
+                                            class="block w-full border rounded-md shadow-sm p-2 focus:ring-[#0f2360] focus:border-[#0f2360]"
+                                            placeholder="Quantity" required />
+                                    </div>
+
+                                    <div class="flex items-center">
+                                        <button type="button" class="remove-material">
+                                            Remove
+                                        </button>
+                                    </div>
+                                `;
+
+                                container.appendChild(row);
+                                materialIndex++;
+                            });
+
+                            document.addEventListener('click', function(e) {
+                                if (e.target.classList.contains('remove-material')) {
+                                    e.target.closest('.material-row').remove();
+                                }
+                            });
+                        </script>
+
                     </div>
                 </main>
             </div>
