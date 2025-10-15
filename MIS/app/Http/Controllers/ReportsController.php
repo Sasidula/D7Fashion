@@ -89,25 +89,28 @@ class ReportsController extends Controller
         $Attendance = $Attendance->get();
 
         // Salary calculation including bonus adjustments
-        $salaryData = $users->map(function($user) use ($month) {
+        $salaryData = $users->map(function ($user) use ($month) {
             $workedHours = 0;
+            $baseSalary = 0;
 
             foreach ($user->attendances as $att) {
-
+                // Count worked hours for display
                 if ($att->check_in && $att->check_out) {
                     $checkIn  = Carbon::parse($att->check_in);
                     $checkOut = Carbon::parse($att->check_out);
-                    $workedHours += $checkOut->diffInMinutes($checkIn,true) / 60; // more accurate
+                    $workedHours += $checkOut->diffInMinutes($checkIn, true) / 60;
                 }
-            }
 
-            // Calculate base salary
-            if ($user->salary_type === 'monthly') {
-                $baseSalary = $user->salary_amount;
-            } elseif ($user->salary_type === 'hourly') {
-                $baseSalary = $workedHours * $user->salary_amount;
-            } else {
-                $baseSalary = 0;
+                // Use the recorded salary snapshot for accuracy
+                if ($att->salary_type === 'hourly') {
+                    $baseSalary += ($att->salary_rate * ($att->check_in && $att->check_out
+                            ? Carbon::parse($att->check_out)->diffInMinutes(Carbon::parse($att->check_in), true) / 60
+                            : 0));
+                } elseif ($att->salary_type === 'monthly') {
+                    // Full monthly salary recorded once per attendance period (avoid double counting)
+                    // You can decide if you want to only count one entry per month
+                    $baseSalary = $att->salary_rate;
+                }
             }
 
             // Sum bonus adjustments for this month
@@ -126,8 +129,8 @@ class ReportsController extends Controller
                 'month'            => Carbon::create(null, $month)->format('F'),
                 'name'             => $user->name,
                 'worked_hours'     => round($workedHours, 2),
-                'salary_type'      => ucfirst($user->salary_type),
-                'rate'             => $user->salary_amount,
+                'salary_type'      => ucfirst($user->attendances->first()->salary_type ?? $user->salary_type),
+                'rate'             => $user->attendances->first()->salary_rate ?? $user->salary_amount,
                 'base_salary'      => round($baseSalary, 2),
                 'bonus_adds'       => round($totalBonusAdds, 2),
                 'bonus_removes'    => round($totalBonusRemoves, 2),
@@ -306,6 +309,11 @@ class ReportsController extends Controller
         ]);
     }
 
+
+
+
+
+
     public function exportPdf(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -381,25 +389,28 @@ class ReportsController extends Controller
         $Attendance = $Attendance->get();
 
         // Salary calculation including bonus adjustments
-        $salaryData = $users->map(function($user) use ($month) {
+        $salaryData = $users->map(function ($user) use ($month , $year) {
             $workedHours = 0;
+            $baseSalary = 0;
 
             foreach ($user->attendances as $att) {
-
+                // Count worked hours for display
                 if ($att->check_in && $att->check_out) {
                     $checkIn  = Carbon::parse($att->check_in);
                     $checkOut = Carbon::parse($att->check_out);
-                    $workedHours += $checkOut->diffInMinutes($checkIn,true) / 60; // more accurate
+                    $workedHours += $checkOut->diffInMinutes($checkIn, true) / 60;
                 }
-            }
 
-            // Calculate base salary
-            if ($user->salary_type === 'monthly') {
-                $baseSalary = $user->salary_amount;
-            } elseif ($user->salary_type === 'hourly') {
-                $baseSalary = $workedHours * $user->salary_amount;
-            } else {
-                $baseSalary = 0;
+                // Use the recorded salary snapshot for accuracy
+                if ($att->salary_type === 'hourly') {
+                    $baseSalary += ($att->salary_rate * ($att->check_in && $att->check_out
+                            ? Carbon::parse($att->check_out)->diffInMinutes(Carbon::parse($att->check_in), true) / 60
+                            : 0));
+                } elseif ($att->salary_type === 'monthly') {
+                    // Full monthly salary recorded once per attendance period (avoid double counting)
+                    // You can decide if you want to only count one entry per month
+                    $baseSalary = $att->salary_rate;
+                }
             }
 
             // Sum bonus adjustments for this month
@@ -415,11 +426,12 @@ class ReportsController extends Controller
             $finalSalary = $baseSalary + $totalBonusAdds - $totalBonusRemoves;
 
             return [
+                'year'             => $year,
                 'month'            => Carbon::create(null, $month)->format('F'),
                 'name'             => $user->name,
                 'worked_hours'     => round($workedHours, 2),
-                'salary_type'      => ucfirst($user->salary_type),
-                'rate'             => $user->salary_amount,
+                'salary_type'      => ucfirst($user->attendances->first()->salary_type ?? $user->salary_type),
+                'rate'             => $user->attendances->first()->salary_rate ?? $user->salary_amount,
                 'base_salary'      => round($baseSalary, 2),
                 'bonus_adds'       => round($totalBonusAdds, 2),
                 'bonus_removes'    => round($totalBonusRemoves, 2),
@@ -612,6 +624,11 @@ class ReportsController extends Controller
         return redirect()->back()->with('error', 'Invalid report type.');
     }
 
+
+
+
+
+
     public function PrintPdf(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -687,25 +704,28 @@ class ReportsController extends Controller
         $Attendance = $Attendance->get();
 
         // Salary calculation including bonus adjustments
-        $salaryData = $users->map(function($user) use ($month) {
+        $salaryData = $users->map(function ($user) use ($month , $year) {
             $workedHours = 0;
+            $baseSalary = 0;
 
             foreach ($user->attendances as $att) {
-
+                // Count worked hours for display
                 if ($att->check_in && $att->check_out) {
                     $checkIn  = Carbon::parse($att->check_in);
                     $checkOut = Carbon::parse($att->check_out);
-                    $workedHours += $checkOut->diffInMinutes($checkIn,true) / 60; // more accurate
+                    $workedHours += $checkOut->diffInMinutes($checkIn, true) / 60;
                 }
-            }
 
-            // Calculate base salary
-            if ($user->salary_type === 'monthly') {
-                $baseSalary = $user->salary_amount;
-            } elseif ($user->salary_type === 'hourly') {
-                $baseSalary = $workedHours * $user->salary_amount;
-            } else {
-                $baseSalary = 0;
+                // Use the recorded salary snapshot for accuracy
+                if ($att->salary_type === 'hourly') {
+                    $baseSalary += ($att->salary_rate * ($att->check_in && $att->check_out
+                            ? Carbon::parse($att->check_out)->diffInMinutes(Carbon::parse($att->check_in), true) / 60
+                            : 0));
+                } elseif ($att->salary_type === 'monthly') {
+                    // Full monthly salary recorded once per attendance period (avoid double counting)
+                    // You can decide if you want to only count one entry per month
+                    $baseSalary = $att->salary_rate;
+                }
             }
 
             // Sum bonus adjustments for this month
@@ -721,11 +741,12 @@ class ReportsController extends Controller
             $finalSalary = $baseSalary + $totalBonusAdds - $totalBonusRemoves;
 
             return [
+                'year'             => $year,
                 'month'            => Carbon::create(null, $month)->format('F'),
                 'name'             => $user->name,
                 'worked_hours'     => round($workedHours, 2),
-                'salary_type'      => ucfirst($user->salary_type),
-                'rate'             => $user->salary_amount,
+                'salary_type'      => ucfirst($user->attendances->first()->salary_type ?? $user->salary_type),
+                'rate'             => $user->attendances->first()->salary_rate ?? $user->salary_amount,
                 'base_salary'      => round($baseSalary, 2),
                 'bonus_adds'       => round($totalBonusAdds, 2),
                 'bonus_removes'    => round($totalBonusRemoves, 2),
@@ -984,25 +1005,28 @@ class ReportsController extends Controller
             });
 
             // Salary calculation including bonus adjustments
-            $salaryData = $users->map(function($user) use ($year, $month) {
+            $salaryData = $users->map(function ($user) use ($month) {
                 $workedHours = 0;
+                $baseSalary = 0;
 
                 foreach ($user->attendances as $att) {
-
+                    // Count worked hours for display
                     if ($att->check_in && $att->check_out) {
                         $checkIn  = Carbon::parse($att->check_in);
                         $checkOut = Carbon::parse($att->check_out);
-                        $workedHours += $checkOut->diffInMinutes($checkIn,true) / 60; // more accurate
+                        $workedHours += $checkOut->diffInMinutes($checkIn, true) / 60;
                     }
-                }
 
-                // Calculate base salary
-                if ($user->salary_type === 'monthly') {
-                    $baseSalary = $user->salary_amount;
-                } elseif ($user->salary_type === 'hourly') {
-                    $baseSalary = $workedHours * $user->salary_amount;
-                } else {
-                    $baseSalary = 0;
+                    // Use the recorded salary snapshot for accuracy
+                    if ($att->salary_type === 'hourly') {
+                        $baseSalary += ($att->salary_rate * ($att->check_in && $att->check_out
+                                ? Carbon::parse($att->check_out)->diffInMinutes(Carbon::parse($att->check_in), true) / 60
+                                : 0));
+                    } elseif ($att->salary_type === 'monthly') {
+                        // Full monthly salary recorded once per attendance period (avoid double counting)
+                        // You can decide if you want to only count one entry per month
+                        $baseSalary = $att->salary_rate;
+                    }
                 }
 
                 // Sum bonus adjustments for this month
@@ -1021,8 +1045,8 @@ class ReportsController extends Controller
                     'month'            => Carbon::create(null, $month)->format('F'),
                     'name'             => $user->name,
                     'worked_hours'     => round($workedHours, 2),
-                    'salary_type'      => ucfirst($user->salary_type),
-                    'rate'             => $user->salary_amount,
+                    'salary_type'      => ucfirst($user->attendances->first()->salary_type ?? $user->salary_type),
+                    'rate'             => $user->attendances->last()->salary_rate ?? $user->salary_amount,
                     'base_salary'      => round($baseSalary, 2),
                     'bonus_adds'       => round($totalBonusAdds, 2),
                     'bonus_removes'    => round($totalBonusRemoves, 2),
@@ -1088,25 +1112,28 @@ class ReportsController extends Controller
             });
 
             // Salary calculation including bonus adjustments
-            $salaryData = $users->map(function($user) use ($month, $year) {
+            $salaryData = $users->map(function ($user) use ($month, $year) {
                 $workedHours = 0;
+                $baseSalary = 0;
 
                 foreach ($user->attendances as $att) {
-
+                    // Count worked hours for display
                     if ($att->check_in && $att->check_out) {
                         $checkIn  = Carbon::parse($att->check_in);
                         $checkOut = Carbon::parse($att->check_out);
-                        $workedHours += $checkOut->diffInMinutes($checkIn,true) / 60; // more accurate
+                        $workedHours += $checkOut->diffInMinutes($checkIn, true) / 60;
                     }
-                }
 
-                // Calculate base salary
-                if ($user->salary_type === 'monthly') {
-                    $baseSalary = $user->salary_amount;
-                } elseif ($user->salary_type === 'hourly') {
-                    $baseSalary = $workedHours * $user->salary_amount;
-                } else {
-                    $baseSalary = 0;
+                    // Use the recorded salary snapshot for accuracy
+                    if ($att->salary_type === 'hourly') {
+                        $baseSalary += ($att->salary_rate * ($att->check_in && $att->check_out
+                                ? Carbon::parse($att->check_out)->diffInMinutes(Carbon::parse($att->check_in), true) / 60
+                                : 0));
+                    } elseif ($att->salary_type === 'monthly') {
+                        // Full monthly salary recorded once per attendance period (avoid double counting)
+                        // You can decide if you want to only count one entry per month
+                        $baseSalary = $att->salary_rate;
+                    }
                 }
 
                 // Sum bonus adjustments for this month
@@ -1126,8 +1153,8 @@ class ReportsController extends Controller
                     'month'            => Carbon::create(null, $month)->format('F'),
                     'name'             => $user->name,
                     'worked_hours'     => round($workedHours, 2),
-                    'salary_type'      => ucfirst($user->salary_type),
-                    'rate'             => $user->salary_amount,
+                    'salary_type'      => ucfirst($user->attendances->first()->salary_type ?? $user->salary_type),
+                    'rate'             => $user->attendances->first()->salary_rate ?? $user->salary_amount,
                     'base_salary'      => round($baseSalary, 2),
                     'bonus_adds'       => round($totalBonusAdds, 2),
                     'bonus_removes'    => round($totalBonusRemoves, 2),
@@ -1193,25 +1220,28 @@ class ReportsController extends Controller
             });
 
             // Salary calculation including bonus adjustments
-            $salaryData = $users->map(function($user) use ($month, $year) {
+            $salaryData = $users->map(function ($user) use ($month, $year) {
                 $workedHours = 0;
+                $baseSalary = 0;
 
                 foreach ($user->attendances as $att) {
-
+                    // Count worked hours for display
                     if ($att->check_in && $att->check_out) {
                         $checkIn  = Carbon::parse($att->check_in);
                         $checkOut = Carbon::parse($att->check_out);
-                        $workedHours += $checkOut->diffInMinutes($checkIn,true) / 60; // more accurate
+                        $workedHours += $checkOut->diffInMinutes($checkIn, true) / 60;
                     }
-                }
 
-                // Calculate base salary
-                if ($user->salary_type === 'monthly') {
-                    $baseSalary = $user->salary_amount;
-                } elseif ($user->salary_type === 'hourly') {
-                    $baseSalary = $workedHours * $user->salary_amount;
-                } else {
-                    $baseSalary = 0;
+                    // Use the recorded salary snapshot for accuracy
+                    if ($att->salary_type === 'hourly') {
+                        $baseSalary += ($att->salary_rate * ($att->check_in && $att->check_out
+                                ? Carbon::parse($att->check_out)->diffInMinutes(Carbon::parse($att->check_in), true) / 60
+                                : 0));
+                    } elseif ($att->salary_type === 'monthly') {
+                        // Full monthly salary recorded once per attendance period (avoid double counting)
+                        // You can decide if you want to only count one entry per month
+                        $baseSalary = $att->salary_rate;
+                    }
                 }
 
                 // Sum bonus adjustments for this month
@@ -1231,8 +1261,8 @@ class ReportsController extends Controller
                     'month'            => Carbon::create(null, $month)->format('F'),
                     'name'             => $user->name,
                     'worked_hours'     => round($workedHours, 2),
-                    'salary_type'      => ucfirst($user->salary_type),
-                    'rate'             => $user->salary_amount,
+                    'salary_type'      => ucfirst($user->attendances->first()->salary_type ?? $user->salary_type),
+                    'rate'             => $user->attendances->first()->salary_rate ?? $user->salary_amount,
                     'base_salary'      => round($baseSalary, 2),
                     'bonus_adds'       => round($totalBonusAdds, 2),
                     'bonus_removes'    => round($totalBonusRemoves, 2),

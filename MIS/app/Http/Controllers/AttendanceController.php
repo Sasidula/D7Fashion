@@ -69,12 +69,15 @@ class AttendanceController extends Controller
 
         // If both check_in and check_out are provided: create a custom entry
         if ($checkIn && $checkOut) {
-            Attendance::create([
+            $attendance = Attendance::create([
                 'user_id' => $userId,
                 'date' => $date,
                 'check_in' => $checkIn,
                 'check_out' => $checkOut,
             ]);
+
+            // ✅ calculate salary immediately
+            $attendance->calculateDailySalary();
 
             return back()->with('status', 'Custom attendance recorded.');
         }
@@ -91,13 +94,15 @@ class AttendanceController extends Controller
                 $attendance->check_out = now()->format('H:i');
                 $attendance->save();
 
+                // ✅ calculate salary after check-out
+                $attendance->calculateDailySalary();
+
                 return back()->with('status', 'Check-out recorded.');
             }
 
+            // If fully checked, create a new entry
             if ($attendance->check_in && $attendance->check_out) {
-
-                // If not checked in yet, create a new entry
-                Attendance::create([
+                $new = Attendance::create([
                     'user_id' => $userId,
                     'date' => $today,
                     'check_in' => now()->format('H:i'),
@@ -107,17 +112,18 @@ class AttendanceController extends Controller
             }
 
             return back()->with('status', 'failed(not found).');
-
         }
 
+        // For new employees
         Attendance::create([
             'user_id' => $userId,
             'date' => $today,
             'check_in' => now()->format('H:i'),
         ]);
 
-        return back()->with('status', 'for a new employee Check-in recorded.');
+        return back()->with('status', 'For a new employee, Check-in recorded.');
     }
+
 
 
 //    public function mark(Request $request)

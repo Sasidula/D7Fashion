@@ -14,6 +14,12 @@ return new class extends Migration
             $table->date('date');
             $table->time('check_in')->nullable();
             $table->time('check_out')->nullable();
+
+            // New salary snapshot fields (for historical accuracy)
+            $table->enum('salary_type', ['hourly', 'monthly', 'none'])->default('none');
+            $table->decimal('salary_rate', 10, 2)->default(0.00); // rate at the time (hourly or monthly)
+            $table->decimal('calculated_salary', 10, 2)->default(0.00); // final salary for that day (optional convenience)
+
             $table->timestamps();
         });
     }
